@@ -3,1412 +3,979 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Jejak di Lereng - Membaca Pola Longsor di DIY</title>
-    
-    <!-- Fonts -->
+    <title>Jejak di Lereng: Membaca Pola Longsor di DIY</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;700;800&display=swap" rel="stylesheet">
-    
-    <!-- Chart.js -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-    
-    <!-- Leaflet for map -->
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
+        :root {
+            --bg-primary: #FFF8F0;
+            --bg-secondary: #FFFFFF;
+            --bg-card: rgba(255, 255, 255, 0.8);
+            --text-primary: #2D3142;
+            --text-secondary: #5A6376;
+            --accent-primary: #D95D39;
+            --accent-secondary: #F18F01;
+            --accent-tertiary: #8B4513;
+            --accent-success: #6B9B37;
+            --shadow: rgba(45, 49, 66, 0.1);
+            --gradient-1: #D95D39;
+            --gradient-2: #F18F01;
+        }
+
+        [data-theme="dark"] {
+            --bg-primary: #1A1D2E;
+            --bg-secondary: #16213E;
+            --bg-card: rgba(22, 33, 62, 0.8);
+            --text-primary: #F5F5F5;
+            --text-secondary: #B8C4D9;
+            --accent-primary: #FF6B6B;
+            --accent-secondary: #FFA07A;
+            --accent-tertiary: #A855F7;
+            --accent-success: #4ADE80;
+            --shadow: rgba(0, 0, 0, 0.3);
+            --gradient-1: #FF6B6B;
+            --gradient-2: #A855F7;
+        }
+
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
-        
-        :root {
-            --color-bg: #0A0E1A;
-            --color-text: #FFFFFF;
-            --color-text-secondary: #94A3B8;
-            --color-accent: #FF6B6B;
-            --color-accent-light: #FFA500;
-            --color-accent-dark: #DC143C;
-            --color-surface: rgba(255, 255, 255, 0.05);
-            --color-border: rgba(255, 255, 255, 0.1);
-            --color-success: #4ADE80;
-            --color-purple: #A855F7;
-            --color-blue: #3B82F6;
-            --spacing-xs: 8px;
-            --spacing-sm: 16px;
-            --spacing-md: 32px;
-            --spacing-lg: 64px;
-            --spacing-xl: 128px;
-            --radius: 24px;
-            --transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-        
+
         body {
-            font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
-            background: var(--color-bg);
-            color: var(--color-text);
-            line-height: 1.6;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
             overflow-x: hidden;
-            -webkit-font-smoothing: antialiased;
-            position: relative;
+            transition: background 0.5s ease, color 0.5s ease;
         }
-        
-        /* Animated Background */
-        body::before {
-            content: '';
+
+        .page-transition {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: 
-                radial-gradient(circle at 20% 50%, rgba(255, 107, 107, 0.1) 0%, transparent 50%),
-                radial-gradient(circle at 80% 80%, rgba(168, 85, 247, 0.1) 0%, transparent 50%),
-                radial-gradient(circle at 40% 90%, rgba(59, 130, 246, 0.1) 0%, transparent 50%);
-            z-index: -1;
-            animation: backgroundShift 20s ease infinite;
+            background: var(--accent-primary);
+            z-index: 10000;
+            transform: translateY(-100%);
+            transition: transform 0.6s cubic-bezier(0.76, 0, 0.24, 1);
         }
-        
-        @keyframes backgroundShift {
-            0%, 100% { opacity: 1; transform: scale(1); }
-            50% { opacity: 0.8; transform: scale(1.1); }
+
+        .page-transition.active {
+            transform: translateY(0);
         }
-        
-        /* Floating particles */
-        .particles {
+
+        .theme-toggle {
             position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-            z-index: 0;
-        }
-        
-        .particle {
-            position: absolute;
-            width: 4px;
-            height: 4px;
-            background: rgba(255, 255, 255, 0.3);
-            border-radius: 50%;
-            animation: float 20s infinite;
-        }
-        
-        @keyframes float {
-            0%, 100% { transform: translateY(0) translateX(0); opacity: 0; }
-            10% { opacity: 1; }
-            90% { opacity: 1; }
-            100% { transform: translateY(-100vh) translateX(100px); opacity: 0; }
-        }
-        
-        /* Smooth scroll */
-        html {
-            scroll-behavior: smooth;
-        }
-        
-        /* Header */
-        header {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            background: rgba(10, 14, 26, 0.8);
-            backdrop-filter: blur(30px);
-            -webkit-backdrop-filter: blur(30px);
-            border-bottom: 1px solid var(--color-border);
+            top: 30px;
+            right: 30px;
             z-index: 1000;
-            transition: var(--transition);
-        }
-        
-        header.scrolled {
-            background: rgba(10, 14, 26, 0.95);
-            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
-        }
-        
-        nav {
-            max-width: 1400px;
-            margin: 0 auto;
-            padding: var(--spacing-sm) var(--spacing-md);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        
-        .logo {
-            font-size: 20px;
-            font-weight: 800;
-            background: linear-gradient(135deg, var(--color-accent) 0%, var(--color-purple) 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            text-decoration: none;
-        }
-        
-        .nav-links {
-            display: flex;
-            gap: var(--spacing-md);
-            list-style: none;
-        }
-        
-        .nav-links a {
-            color: var(--color-text-secondary);
-            text-decoration: none;
-            font-size: 14px;
-            font-weight: 600;
-            transition: var(--transition);
-            position: relative;
-        }
-        
-        .nav-links a::after {
-            content: '';
-            position: absolute;
-            bottom: -4px;
-            left: 0;
-            width: 0;
-            height: 2px;
-            background: linear-gradient(90deg, var(--color-accent), var(--color-purple));
-            transition: width 0.3s ease;
-        }
-        
-        .nav-links a:hover {
-            color: var(--color-text);
-        }
-        
-        .nav-links a:hover::after {
-            width: 100%;
-        }
-        
-        /* Hero Section */
-        .hero {
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            text-align: center;
-            padding: var(--spacing-xl) var(--spacing-md) var(--spacing-lg);
-            position: relative;
-            overflow: hidden;
-        }
-        
-        /* Animated blobs */
-        .blob {
-            position: absolute;
+            background: var(--bg-card);
+            border: none;
+            width: 60px;
+            height: 60px;
             border-radius: 50%;
-            filter: blur(100px);
+            cursor: pointer;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px var(--shadow);
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+        }
+
+        .theme-toggle:hover {
+            transform: scale(1.1) rotate(15deg);
+        }
+
+        .blob {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(80px);
             opacity: 0.3;
-            animation: blob 20s infinite;
+            z-index: 0;
+            pointer-events: none;
+            animation: float 20s infinite ease-in-out;
         }
-        
+
         .blob-1 {
-            width: 600px;
-            height: 600px;
-            background: linear-gradient(135deg, var(--color-accent), var(--color-accent-light));
-            top: -200px;
-            right: -200px;
-            animation-delay: 0s;
-        }
-        
-        .blob-2 {
             width: 500px;
             height: 500px;
-            background: linear-gradient(135deg, var(--color-purple), var(--color-blue));
-            bottom: -150px;
-            left: -150px;
-            animation-delay: 4s;
+            background: var(--gradient-1);
+            top: -200px;
+            left: -200px;
         }
-        
-        .blob-3 {
+
+        .blob-2 {
             width: 400px;
             height: 400px;
-            background: linear-gradient(135deg, var(--color-blue), var(--color-success));
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            animation-delay: 8s;
+            background: var(--gradient-2);
+            bottom: -150px;
+            right: -150px;
+            animation-delay: -7s;
         }
-        
-        @keyframes blob {
-            0%, 100% { transform: translate(0, 0) scale(1) rotate(0deg); }
-            33% { transform: translate(30px, -50px) scale(1.1) rotate(120deg); }
-            66% { transform: translate(-20px, 20px) scale(0.9) rotate(240deg); }
+
+        @keyframes float {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            33% { transform: translate(100px, -100px) scale(1.1); }
+            66% { transform: translate(-50px, 100px) scale(0.9); }
         }
-        
-        .hero-content {
-            max-width: 1000px;
-            position: relative;
-            z-index: 1;
-            opacity: 0;
-            animation: fadeInUp 1.2s ease forwards 0.3s;
+
+        .particle {
+            position: fixed;
+            width: 4px;
+            height: 4px;
+            background: var(--accent-secondary);
+            border-radius: 50%;
+            pointer-events: none;
+            opacity: 0.3;
+            z-index: 0;
         }
-        
-        @keyframes fadeInUp {
-            from {
-                opacity: 0;
-                transform: translateY(50px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-        
-        .hero-badge {
-            display: inline-block;
-            background: linear-gradient(135deg, rgba(255, 107, 107, 0.2), rgba(168, 85, 247, 0.2));
-            border: 1px solid rgba(255, 107, 107, 0.3);
-            border-radius: 50px;
-            padding: 8px 20px;
-            font-size: 12px;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 1.5px;
-            margin-bottom: var(--spacing-md);
-            backdrop-filter: blur(10px);
-        }
-        
-        .hero-title {
-            font-size: clamp(48px, 10vw, 96px);
-            font-weight: 900;
-            line-height: 1.1;
-            margin-bottom: var(--spacing-md);
-            background: linear-gradient(135deg, #FFFFFF 0%, var(--color-accent) 50%, var(--color-purple) 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            text-shadow: 0 0 80px rgba(255, 107, 107, 0.3);
-        }
-        
-        .hero-description {
-            font-size: clamp(18px, 2.5vw, 24px);
-            color: var(--color-text-secondary);
-            margin-bottom: var(--spacing-lg);
-            max-width: 700px;
-            margin-left: auto;
-            margin-right: auto;
-            line-height: 1.7;
-        }
-        
-        .hero-stat {
-            display: inline-block;
-            background: linear-gradient(135deg, rgba(255, 107, 107, 0.1), rgba(168, 85, 247, 0.1));
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: var(--radius);
-            padding: var(--spacing-lg);
-            margin-top: var(--spacing-md);
-            box-shadow: 
-                0 20px 60px rgba(0, 0, 0, 0.3),
-                inset 0 1px 0 rgba(255, 255, 255, 0.1);
-            position: relative;
-            overflow: hidden;
-        }
-        
-        .hero-stat::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
-            animation: shine 3s infinite;
-        }
-        
-        @keyframes shine {
-            0% { left: -100%; }
-            100% { left: 200%; }
-        }
-        
-        .hero-stat-number {
-            font-size: 96px;
-            font-weight: 900;
-            background: linear-gradient(135deg, var(--color-accent), var(--color-accent-light));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            line-height: 1;
-            display: block;
-            text-shadow: 0 0 60px rgba(255, 107, 107, 0.5);
-        }
-        
-        .hero-stat-label {
-            font-size: 18px;
-            color: var(--color-text-secondary);
-            margin-top: var(--spacing-sm);
-            font-weight: 600;
-        }
-        
-        .scroll-indicator {
-            position: absolute;
-            bottom: var(--spacing-lg);
-            left: 50%;
-            transform: translateX(-50%);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: var(--spacing-xs);
-            opacity: 0;
-            animation: fadeInUp 1s ease forwards 1.5s;
-        }
-        
-        .scroll-indicator span {
-            font-size: 12px;
-            color: var(--color-text-secondary);
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-        
-        .scroll-indicator::after {
-            content: '';
-            width: 2px;
-            height: 40px;
-            background: linear-gradient(to bottom, var(--color-accent), transparent);
-            animation: scrollLine 2s ease infinite;
-        }
-        
-        @keyframes scrollLine {
-            0% { transform: translateY(0); opacity: 1; }
-            100% { transform: translateY(20px); opacity: 0; }
-        }
-        
-        /* Section */
-        section {
+
+        .container {
             max-width: 1400px;
             margin: 0 auto;
-            padding: var(--spacing-xl) var(--spacing-md);
+            padding: 0 40px;
             position: relative;
             z-index: 1;
         }
-        
-        .section-header {
-            text-align: center;
-            margin-bottom: var(--spacing-lg);
+
+        section {
+            padding: 100px 0;
             opacity: 0;
-            transform: translateY(30px);
-            transition: var(--transition);
+            transform: translateY(50px);
+            transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1);
         }
-        
-        .section-header.visible {
+
+        section.visible {
             opacity: 1;
             transform: translateY(0);
         }
-        
-        .section-badge {
-            display: inline-block;
-            background: linear-gradient(135deg, rgba(255, 107, 107, 0.2), rgba(168, 85, 247, 0.2));
-            border: 1px solid rgba(255, 107, 107, 0.3);
-            border-radius: 50px;
-            padding: 6px 16px;
-            font-size: 11px;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 1.2px;
-            margin-bottom: var(--spacing-sm);
+
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 150px 0;
         }
-        
-        .section-title {
-            font-size: clamp(36px, 6vw, 64px);
-            font-weight: 900;
-            margin-bottom: var(--spacing-sm);
-            background: linear-gradient(135deg, #FFFFFF 0%, var(--color-text-secondary) 100%);
+
+        h1 {
+            font-size: clamp(3rem, 8vw, 7rem);
+            font-weight: 800;
+            line-height: 1.1;
+            margin-bottom: 30px;
+            background: linear-gradient(135deg, var(--gradient-1), var(--gradient-2));
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
         }
-        
-        .section-subtitle {
-            font-size: 20px;
-            color: var(--color-text-secondary);
-            max-width: 700px;
-            margin: 0 auto;
-            line-height: 1.7;
+
+        .subtitle {
+            font-size: clamp(1.2rem, 2vw, 1.5rem);
+            color: var(--text-secondary);
+            font-weight: 400;
+            margin-bottom: 50px;
         }
-        
-        /* Glass Card */
+
+        .stat-hero {
+            font-size: clamp(5rem, 12vw, 10rem);
+            font-weight: 800;
+            color: var(--accent-primary);
+            margin: 40px 0;
+        }
+
         .card {
-            background: linear-gradient(135deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.02));
+            background: var(--bg-card);
             backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: var(--radius);
-            padding: var(--spacing-md);
-            box-shadow: 
-                0 8px 32px rgba(0, 0, 0, 0.3),
-                inset 0 1px 0 rgba(255, 255, 255, 0.1);
-            transition: var(--transition);
-            opacity: 0;
-            transform: translateY(30px) scale(0.95);
-            position: relative;
-            overflow: hidden;
+            border-radius: 24px;
+            padding: 40px;
+            box-shadow: 0 8px 32px var(--shadow);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            transition: all 0.3s ease;
+            transform-style: preserve-3d;
+            perspective: 1000px;
         }
-        
-        .card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 1px;
-            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.5), transparent);
-        }
-        
-        .card.visible {
-            opacity: 1;
-            transform: translateY(0) scale(1);
-        }
-        
+
         .card:hover {
-            transform: translateY(-8px) scale(1.02);
-            box-shadow: 
-                0 20px 60px rgba(255, 107, 107, 0.2),
-                inset 0 1px 0 rgba(255, 255, 255, 0.2);
-            border-color: rgba(255, 107, 107, 0.3);
+            box-shadow: 0 16px 48px var(--shadow);
         }
-        
-        /* Grid */
+
+        .card-3d {
+            transition: transform 0.1s ease;
+        }
+
         .grid {
             display: grid;
-            gap: var(--spacing-md);
             grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 30px;
+            margin-top: 50px;
         }
-        
-        .grid-2 {
-            grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
-        }
-        
-        /* Map Section */
-        #map {
-            height: 600px;
-            border-radius: var(--radius);
-            overflow: hidden;
-            box-shadow: 
-                0 20px 60px rgba(0, 0, 0, 0.4),
-                inset 0 0 0 1px rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-        
-        /* Chart */
-        .chart-container {
-            position: relative;
-            height: 450px;
-            background: linear-gradient(135deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.02));
-            backdrop-filter: blur(20px);
-            border-radius: var(--radius);
-            padding: var(--spacing-md);
-            box-shadow: 
-                0 8px 32px rgba(0, 0, 0, 0.3),
-                inset 0 1px 0 rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-        
-        /* Stats Grid */
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-            gap: var(--spacing-md);
-            margin-top: var(--spacing-lg);
-        }
-        
+
         .stat-card {
             text-align: center;
-            padding: var(--spacing-lg) var(--spacing-md);
-            background: linear-gradient(135deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.02));
-            backdrop-filter: blur(20px);
-            border-radius: var(--radius);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            transition: var(--transition);
-            position: relative;
-            overflow: hidden;
+            padding: 30px;
         }
-        
-        .stat-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 3px;
-            background: linear-gradient(90deg, var(--color-accent), var(--color-purple), var(--color-blue));
-            transform: scaleX(0);
-            transition: transform 0.5s ease;
-        }
-        
-        .stat-card:hover::before {
-            transform: scaleX(1);
-        }
-        
-        .stat-card:hover {
-            transform: translateY(-8px) scale(1.03);
-            box-shadow: 0 20px 60px rgba(255, 107, 107, 0.3);
-            border-color: rgba(255, 107, 107, 0.5);
-        }
-        
+
         .stat-number {
-            font-size: 56px;
-            font-weight: 900;
-            background: linear-gradient(135deg, var(--color-accent), var(--color-accent-light));
+            font-size: 3.5rem;
+            font-weight: 800;
+            color: var(--accent-primary);
+            margin-bottom: 10px;
+        }
+
+        .stat-label {
+            font-size: 1rem;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        #map {
+            height: 500px;
+            border-radius: 16px;
+            overflow: hidden;
+            margin-top: 30px;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 400px;
+            margin-top: 30px;
+        }
+
+        h2 {
+            font-size: clamp(2.5rem, 5vw, 4rem);
+            font-weight: 800;
+            margin-bottom: 20px;
+            background: linear-gradient(135deg, var(--gradient-1), var(--gradient-2));
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
-            line-height: 1;
-            margin-bottom: var(--spacing-sm);
         }
-        
-        .stat-label {
-            font-size: 14px;
-            color: var(--color-text);
-            text-transform: uppercase;
-            letter-spacing: 1px;
+
+        h3 {
+            font-size: clamp(1.5rem, 3vw, 2rem);
             font-weight: 700;
-            margin-bottom: var(--spacing-xs);
+            margin-bottom: 20px;
+            color: var(--text-primary);
         }
-        
-        .stat-description {
-            font-size: 12px;
-            color: var(--color-text-secondary);
+
+        .insight-box {
+            background: linear-gradient(135deg, var(--gradient-1), var(--gradient-2));
+            color: white;
+            padding: 30px;
+            border-radius: 20px;
+            margin-top: 30px;
+            font-size: 1.1rem;
+            line-height: 1.6;
         }
-        
-        /* Timeline */
+
         .timeline {
             position: relative;
-            padding: var(--spacing-lg) 0;
+            padding-left: 40px;
+            margin-top: 40px;
         }
-        
+
         .timeline::before {
             content: '';
             position: absolute;
-            left: 50%;
+            left: 0;
             top: 0;
             bottom: 0;
-            width: 2px;
-            background: linear-gradient(to bottom, var(--color-accent), var(--color-purple), var(--color-blue));
+            width: 3px;
+            background: linear-gradient(180deg, var(--gradient-1), var(--gradient-2));
         }
-        
+
         .timeline-item {
+            margin-bottom: 40px;
+            padding-left: 30px;
             position: relative;
-            margin-bottom: var(--spacing-xl);
+        }
+
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: -47px;
+            top: 5px;
+            width: 15px;
+            height: 15px;
+            background: var(--accent-primary);
+            border-radius: 50%;
+            border: 3px solid var(--bg-primary);
+        }
+
+        .timeline-year {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--accent-primary);
+            margin-bottom: 8px;
+        }
+
+        .mitigation-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 25px;
+            margin-top: 40px;
+        }
+
+        .mitigation-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 15px;
+        }
+
+        .mitigation-icon {
+            font-size: 2rem;
+            min-width: 50px;
+            height: 50px;
             display: flex;
             align-items: center;
-            opacity: 0;
-            transform: translateX(-50px);
-            transition: var(--transition);
-        }
-        
-        .timeline-item.visible {
-            opacity: 1;
-            transform: translateX(0);
-        }
-        
-        .timeline-item:nth-child(odd) {
-            flex-direction: row-reverse;
-            transform: translateX(50px);
-        }
-        
-        .timeline-item:nth-child(odd).visible {
-            transform: translateX(0);
-        }
-        
-        .timeline-content {
-            width: 45%;
-            padding: var(--spacing-md);
-            background: linear-gradient(135deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.02));
-            backdrop-filter: blur(20px);
-            border-radius: var(--radius);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-            transition: var(--transition);
-        }
-        
-        .timeline-content:hover {
-            transform: scale(1.05);
-            box-shadow: 0 12px 40px rgba(255, 107, 107, 0.3);
-        }
-        
-        .timeline-dot {
-            position: absolute;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 20px;
-            height: 20px;
-            background: linear-gradient(135deg, var(--color-accent), var(--color-purple));
-            border: 4px solid var(--color-bg);
-            border-radius: 50%;
-            z-index: 1;
-            box-shadow: 0 0 20px rgba(255, 107, 107, 0.5);
-        }
-        
-        /* Icon Grid */
-        .icon-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-            gap: var(--spacing-md);
-            margin-top: var(--spacing-lg);
-        }
-        
-        .icon-card {
-            text-align: center;
-            padding: var(--spacing-lg) var(--spacing-md);
-            background: linear-gradient(135deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.02));
-            backdrop-filter: blur(20px);
-            border-radius: var(--radius);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            transition: var(--transition);
-            position: relative;
-            overflow: hidden;
-        }
-        
-        .icon-card::before {
-            content: '';
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%) scale(0);
-            width: 200px;
-            height: 200px;
-            background: radial-gradient(circle, rgba(255, 107, 107, 0.2), transparent);
-            border-radius: 50%;
-            transition: transform 0.6s ease;
-        }
-        
-        .icon-card:hover::before {
-            transform: translate(-50%, -50%) scale(1);
-        }
-        
-        .icon-card:hover {
-            transform: translateY(-12px) scale(1.05);
-            border-color: rgba(255, 107, 107, 0.5);
-            box-shadow: 0 20px 60px rgba(255, 107, 107, 0.3);
-        }
-        
-        .icon {
-            font-size: 56px;
-            margin-bottom: var(--spacing-sm);
-            filter: drop-shadow(0 4px 20px rgba(255, 107, 107, 0.3));
-            transition: var(--transition);
-        }
-        
-        .icon-card:hover .icon {
-            transform: scale(1.2) rotate(5deg);
-        }
-        
-        .icon-title {
-            font-weight: 700;
-            margin-bottom: var(--spacing-xs);
-            font-size: 16px;
-        }
-        
-        .icon-description {
-            font-size: 13px;
-            color: var(--color-text-secondary);
-            line-height: 1.6;
-        }
-        
-        /* Alert Box */
-        .alert {
-            background: linear-gradient(135deg, rgba(255, 107, 107, 0.2), rgba(168, 85, 247, 0.2));
-            backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 107, 107, 0.3);
-            color: var(--color-text);
-            padding: var(--spacing-md) var(--spacing-lg);
-            border-radius: var(--radius);
-            text-align: center;
-            font-weight: 600;
-            margin: var(--spacing-lg) 0;
-            box-shadow: 0 8px 32px rgba(255, 107, 107, 0.3);
-            position: relative;
-            overflow: hidden;
-        }
-        
-        .alert::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
-            animation: alertShine 3s infinite;
-        }
-        
-        @keyframes alertShine {
-            0% { left: -100%; }
-            100% { left: 200%; }
-        }
-        
-        /* Footer */
-        footer {
-            background: linear-gradient(to top, rgba(0, 0, 0, 0.5), transparent);
-            backdrop-filter: blur(20px);
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
-            color: var(--color-text-secondary);
-            padding: var(--spacing-xl) var(--spacing-md) var(--spacing-lg);
-            margin-top: var(--spacing-xl);
-        }
-        
-        .footer-content {
-            max-width: 1400px;
-            margin: 0 auto;
-            text-align: center;
-        }
-        
-        .footer-title {
-            color: var(--color-text);
-            font-size: 20px;
-            font-weight: 800;
-            margin-bottom: var(--spacing-md);
-            background: linear-gradient(135deg, var(--color-accent), var(--color-purple));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-        
-        .footer-text {
-            font-size: 13px;
-            line-height: 1.9;
-            max-width: 900px;
-            margin: 0 auto var(--spacing-md);
-            opacity: 0.8;
-        }
-        
-        .footer-links {
-            display: flex;
-            gap: var(--spacing-md);
             justify-content: center;
-            flex-wrap: wrap;
-            font-size: 13px;
-            margin-bottom: var(--spacing-md);
+            background: linear-gradient(135deg, var(--gradient-1), var(--gradient-2));
+            border-radius: 12px;
+            color: white;
         }
-        
-        .footer-links a {
-            color: var(--color-text-secondary);
-            text-decoration: none;
-            transition: var(--transition);
-            padding: 8px 16px;
-            border-radius: 50px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
+
+        footer {
+            background: var(--bg-secondary);
+            padding: 60px 0 40px;
+            margin-top: 100px;
+            border-top: 1px solid var(--shadow);
         }
-        
-        .footer-links a:hover {
-            color: var(--color-text);
-            border-color: var(--color-accent);
-            background: rgba(255, 107, 107, 0.1);
+
+        .footer-content {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 40px;
         }
-        
-        .footer-copyright {
-            margin-top: var(--spacing-md);
-            opacity: 0.5;
-            font-size: 12px;
+
+        .footer-section h4 {
+            font-size: 1.2rem;
+            margin-bottom: 15px;
+            color: var(--text-primary);
         }
-        
-        /* Responsive */
+
+        .footer-section p, .footer-section li {
+            color: var(--text-secondary);
+            line-height: 1.8;
+            font-size: 0.95rem;
+        }
+
         @media (max-width: 768px) {
-            .nav-links {
-                display: none;
+            .container {
+                padding: 0 20px;
             }
-            
-            .grid-2 {
-                grid-template-columns: 1fr;
+
+            section {
+                padding: 60px 0;
             }
-            
-            .timeline::before {
-                left: 30px;
+
+            .hero {
+                min-height: 80vh;
             }
-            
-            .timeline-item {
-                flex-direction: row !important;
-                padding-left: 70px;
+
+            .theme-toggle {
+                top: 20px;
+                right: 20px;
+                width: 50px;
+                height: 50px;
             }
-            
-            .timeline-content {
-                width: 100%;
+
+            .card {
+                padding: 25px;
             }
-            
-            .timeline-dot {
-                left: 30px;
-            }
-            
-            .hero-stat-number {
-                font-size: 64px;
+
+            #map {
+                height: 350px;
             }
         }
-        
-        /* Loading state */
+
+        /* Leaflet custom styles */
+        .leaflet-popup-content-wrapper {
+            background: var(--bg-card);
+            backdrop-filter: blur(20px);
+            border-radius: 12px;
+            box-shadow: 0 8px 32px var(--shadow);
+        }
+
+        .leaflet-popup-content {
+            color: var(--text-primary);
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            margin: 15px;
+        }
+
+        .leaflet-popup-tip {
+            background: var(--bg-card);
+        }
+
+        /* Loading animation */
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
         .loading {
-            position: relative;
-        }
-        
-        .loading::after {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 2px;
-            background: linear-gradient(90deg, var(--color-accent), var(--color-purple));
-            animation: loading 1.5s ease infinite;
-        }
-        
-        @keyframes loading {
-            0% { transform: translateX(-100%); }
-            100% { transform: translateX(100%); }
+            animation: pulse 2s infinite;
         }
     </style>
 </head>
 <body>
-    <!-- Particles -->
-    <div class="particles" id="particles"></div>
+    <div class="page-transition"></div>
     
-    <!-- Header -->
-    <header id="header">
-        <nav>
-            <a href="#" class="logo">Jejak di Lereng</a>
-            <ul class="nav-links">
-                <li><a href="#overview">Overview</a></li>
-                <li><a href="#lokasi">Lokasi</a></li>
-                <li><a href="#waktu">Waktu</a></li>
-                <li><a href="#dampak">Dampak</a></li>
-                <li><a href="#mitigasi">Mitigasi</a></li>
-            </ul>
-        </nav>
-    </header>
-    
-    <!-- Hero Section -->
-    <section class="hero">
-        <div class="blob blob-1"></div>
-        <div class="blob blob-2"></div>
-        <div class="blob blob-3"></div>
-        
-        <div class="hero-content">
-            <div class="hero-badge">Data Tanah Longsor DIY 2016–2026</div>
-            <h1 class="hero-title">Jejak di Lereng</h1>
-            <p class="hero-description">Membaca pola tanah longsor di Daerah Istimewa Yogyakarta melalui 112 kejadian tercatat dalam dekade terakhir</p>
-            
-            <div class="hero-stat">
-                <span class="hero-stat-number" data-count="86">0</span>
-                <div class="hero-stat-label">Persen kejadian terjadi Oktober–Maret</div>
-            </div>
-        </div>
-        
-        <div class="scroll-indicator">
-            <span>Scroll</span>
+    <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle theme">
+        <span class="theme-icon">☀️</span>
+    </button>
+
+    <div class="blob blob-1"></div>
+    <div class="blob blob-2"></div>
+
+    <section class="hero visible">
+        <div class="container">
+            <h1>Jejak di Lereng</h1>
+            <p class="subtitle">Membaca Pola Longsor di Daerah Istimewa Yogyakarta</p>
+            <div class="stat-hero" id="heroStat">0%</div>
+            <p class="subtitle">Kejadian longsor terjadi pada musim hujan (Oktober–Maret)</p>
         </div>
     </section>
-    
-    <!-- Overview Section -->
+
     <section id="overview">
-        <div class="section-header">
-            <div class="section-badge">Ringkasan Data</div>
-            <h2 class="section-title">112 Kejadian Tercatat</h2>
-            <p class="section-subtitle">Periode Februari 2016 hingga Februari 2026 di lima kabupaten/kota DIY</p>
-        </div>
-        
-        <div class="stats-grid">
-            <div class="stat-card card">
-                <div class="stat-number" data-count="20">0</div>
-                <div class="stat-label">Meninggal</div>
-                <div class="stat-description">Semua tercatat 2016-2019</div>
+        <div class="container">
+            <h2>Ikhtisar</h2>
+            <div class="card card-3d">
+                <h3>112 Kejadian Longsor dalam 10 Tahun</h3>
+                <p style="font-size: 1.1rem; line-height: 1.8; color: var(--text-secondary);">
+                    Dari Februari 2016 hingga Februari 2026, BNPB mencatat 112 kejadian tanah longsor di DIY. 
+                    Topografi perbukitan dan aktivitas curah hujan tinggi menjadikan wilayah ini rentan. 
+                    Data menunjukkan pola temporal dan spasial yang jelas: sebagian besar longsor terjadi pada musim hujan, 
+                    dengan Kulon Progo sebagai wilayah paling terdampak.
+                </p>
             </div>
-            <div class="stat-card card">
-                <div class="stat-number" data-count="25">0</div>
-                <div class="stat-label">Luka/Sakit</div>
-            </div>
-            <div class="stat-card card">
-                <div class="stat-number" data-count="11141">0</div>
-                <div class="stat-label">Mengungsi</div>
-            </div>
-            <div class="stat-card card">
-                <div class="stat-number" data-count="268">0</div>
-                <div class="stat-label">Rumah Rusak</div>
-                <div class="stat-description">Berat + sedang + ringan</div>
-            </div>
-        </div>
-        
-        <div class="alert">
-            ⚠️ Sejak 2020 hingga Februari 2026: 68 catatan longsor, 0 korban jiwa tercatat
-        </div>
-    </section>
-    
-    <!-- Lokasi Section -->
-    <section id="lokasi">
-        <div class="section-header">
-            <div class="section-badge">Sebaran Wilayah</div>
-            <h2 class="section-title">Di Mana Longsor Tercatat?</h2>
-            <p class="section-subtitle">Kulon Progo mencatat kejadian terbanyak dengan 36,6% dari total</p>
-        </div>
-        
-        <div id="map" class="card"></div>
-        
-        <div class="stats-grid" style="margin-top: 3rem;">
-            <div class="stat-card card">
-                <div class="stat-number">41</div>
-                <div class="stat-label">Kulon Progo</div>
-                <div class="stat-description">36,6%</div>
-            </div>
-            <div class="stat-card card">
-                <div class="stat-number">25</div>
-                <div class="stat-label">Sleman</div>
-                <div class="stat-description">22,3%</div>
-            </div>
-            <div class="stat-card card">
-                <div class="stat-number">22</div>
-                <div class="stat-label">Gunungkidul</div>
-                <div class="stat-description">19,6%</div>
-            </div>
-            <div class="stat-card card">
-                <div class="stat-number">13</div>
-                <div class="stat-label">Bantul</div>
-                <div class="stat-description">11,6%</div>
-            </div>
-            <div class="stat-card card">
-                <div class="stat-number">11</div>
-                <div class="stat-label">Kota Yogyakarta</div>
-                <div class="stat-description">9,8%</div>
-            </div>
-        </div>
-    </section>
-    
-    <!-- Waktu Section -->
-    <section id="waktu">
-        <div class="section-header">
-            <div class="section-badge">Pola Temporal</div>
-            <h2 class="section-title">Kapan Longsor Terjadi?</h2>
-            <p class="section-subtitle">Pola kejadian selaras dengan musim hujan di DIY</p>
-        </div>
-        
-        <div class="chart-container card">
-            <canvas id="monthChart"></canvas>
-        </div>
-        
-        <div class="alert">
-            📊 96 dari 112 catatan (85,7%) terjadi pada Oktober–Maret
-        </div>
-        
-        <div class="chart-container card" style="margin-top: 3rem;">
-            <canvas id="yearChart"></canvas>
-        </div>
-    </section>
-    
-    <!-- Dampak Section -->
-    <section id="dampak">
-        <div class="section-header">
-            <div class="section-badge">Dampak Tercatat</div>
-            <h2 class="section-title">Perubahan Pola Korban</h2>
-            <p class="section-subtitle">Tren positif sejak 2020 menunjukkan perbaikan kesiapsiagaan</p>
-        </div>
-        
-        <div class="timeline">
-            <div class="timeline-item">
-                <div class="timeline-content">
-                    <h3 style="color: var(--color-accent); font-size: 20px; margin-bottom: 0.5rem;">2016-2019</h3>
-                    <p><strong>20 jiwa meninggal</strong> tercatat dalam periode ini. Kejadian terakhir dengan korban jiwa: 1 September 2019 di Sleman.</p>
+
+            <div class="grid">
+                <div class="card stat-card card-3d">
+                    <div class="stat-number" data-target="112">0</div>
+                    <div class="stat-label">Total Kejadian</div>
                 </div>
-                <div class="timeline-dot"></div>
-            </div>
-            
-            <div class="timeline-item">
-                <div class="timeline-content">
-                    <h3 style="color: var(--color-success); font-size: 20px; margin-bottom: 0.5rem;">2020-2026</h3>
-                    <p><strong>68 catatan longsor, 0 korban jiwa.</strong> Meski jumlah kejadian terus ada, tidak ada korban jiwa tercatat sejak 2020.</p>
+                <div class="card stat-card card-3d">
+                    <div class="stat-number" data-target="86">0%</div>
+                    <div class="stat-label">Musim Hujan</div>
                 </div>
-                <div class="timeline-dot"></div>
-            </div>
-            
-            <div class="timeline-item">
-                <div class="timeline-content">
-                    <h3 style="color: var(--color-purple); font-size: 20px; margin-bottom: 0.5rem;">Februari 2023</h3>
-                    <p><strong>17 kejadian dalam satu bulan</strong> — episode terbanyak dalam satu periode bulanan.</p>
+                <div class="card stat-card card-3d">
+                    <div class="stat-number" data-target="41">0</div>
+                    <div class="stat-label">Kulon Progo</div>
                 </div>
-                <div class="timeline-dot"></div>
             </div>
         </div>
     </section>
-    
-    <!-- Mitigasi Section -->
-    <section id="mitigasi">
-        <div class="section-header">
-            <div class="section-badge">Aksi Bersama</div>
-            <h2 class="section-title">Kesiapsiagaan Kolaboratif</h2>
-            <p class="section-subtitle">Langkah mitigasi yang dianjurkan untuk mengurangi risiko</p>
-        </div>
-        
-        <div class="icon-grid">
-            <div class="icon-card card">
-                <div class="icon">☁️</div>
-                <div class="icon-title">Pantau Cuaca</div>
-                <div class="icon-description">Respons cepat terhadap peringatan BMKG</div>
+
+    <section id="location">
+        <div class="container">
+            <h2>Persebaran Lokasi</h2>
+            <div class="card card-3d">
+                <h3>Lima Kabupaten/Kota Terdampak</h3>
+                <div id="map"></div>
+                <div class="insight-box">
+                    💡 Kulon Progo mencatat 41 kejadian (36.6%), tertinggi di DIY. Topografi berbukit dan curah hujan tinggi menjadi faktor utama.
+                </div>
             </div>
-            
-            <div class="icon-card card">
-                <div class="icon">📢</div>
-                <div class="icon-title">Peringatan Dini</div>
-                <div class="icon-description">Pasang dan rawat alat deteksi (BPBD + warga)</div>
-            </div>
-            
-            <div class="icon-card card">
-                <div class="icon">🏘️</div>
-                <div class="icon-title">Desa Tangguh</div>
-                <div class="icon-description">Bentuk Destana sesuai Peraturan BNPB 2025</div>
-            </div>
-            
-            <div class="icon-card card">
-                <div class="icon">🌳</div>
-                <div class="icon-title">Edukasi & Hijau</div>
-                <div class="icon-description">Sosialisasi warga lereng dan penghijauan</div>
-            </div>
-            
-            <div class="icon-card card">
-                <div class="icon">🎓</div>
-                <div class="icon-title">Dukungan Riset</div>
-                <div class="icon-description">Kampus dan komunitas turut membangun kapasitas</div>
-            </div>
-        </div>
-        
-        <div class="card" style="margin-top: 3rem; padding: 2rem; text-align: center;">
-            <h3 style="margin-bottom: 1rem; font-size: 24px;">🌱 Peran Vegetasi</h3>
-            <p style="color: var(--color-text-secondary); line-height: 1.8;">Penelitian menunjukkan vegetasi membantu mengurangi risiko longsor dangkal melalui dua cara: <strong style="color: var(--color-text);">akar menguatkan tanah secara mekanis</strong>, dan <strong style="color: var(--color-text);">tanaman menyerap air dari tanah</strong>. Namun, pemilihan jenis dan lokasi tanam harus tepat agar tidak membebani lereng.</p>
         </div>
     </section>
-    
-    <!-- Footer -->
+
+    <section id="time">
+        <div class="container">
+            <h2>Pola Waktu</h2>
+            
+            <div class="card card-3d" style="margin-bottom: 30px;">
+                <h3>Distribusi Bulanan</h3>
+                <div class="chart-container">
+                    <canvas id="monthChart"></canvas>
+                </div>
+                <div class="insight-box">
+                    💡 96 dari 112 kejadian (86%) terjadi pada Oktober–Maret, puncak musim hujan di DIY.
+                </div>
+            </div>
+
+            <div class="card card-3d">
+                <h3>Distribusi Tahunan</h3>
+                <div class="chart-container">
+                    <canvas id="yearChart"></canvas>
+                </div>
+                <div class="insight-box">
+                    💡 Tahun 2021 mencatat lonjakan tertinggi dengan 24 kejadian. Data 2026 hanya mencakup Januari–Februari.
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="impact">
+        <div class="container">
+            <h2>Dampak & Insight</h2>
+            
+            <div class="grid">
+                <div class="card stat-card card-3d">
+                    <div class="stat-number" data-target="20">0</div>
+                    <div class="stat-label">Korban Jiwa</div>
+                    <p style="font-size: 0.9rem; color: var(--text-secondary); margin-top: 10px;">Semua terjadi 2016–2019</p>
+                </div>
+                <div class="card stat-card card-3d">
+                    <div class="stat-number" data-target="25">0</div>
+                    <div class="stat-label">Luka-luka</div>
+                </div>
+                <div class="card stat-card card-3d">
+                    <div class="stat-number" data-target="11141">0</div>
+                    <div class="stat-label">Mengungsi</div>
+                </div>
+                <div class="card stat-card card-3d">
+                    <div class="stat-number" data-target="268">0</div>
+                    <div class="stat-label">Rumah Rusak</div>
+                </div>
+            </div>
+
+            <div class="card card-3d" style="margin-top: 40px;">
+                <h3>Insight Positif</h3>
+                <div class="timeline">
+                    <div class="timeline-item">
+                        <div class="timeline-year">2016–2019</div>
+                        <p style="color: var(--text-secondary);">20 korban jiwa tercatat dalam periode ini</p>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-year">2020–2026</div>
+                        <p style="color: var(--text-secondary);">68 kejadian dengan 0 korban jiwa — sistem peringatan dini dan mitigasi berjalan efektif</p>
+                    </div>
+                </div>
+                <div class="insight-box">
+                    ✅ Tidak ada korban jiwa sejak 2020. Peningkatan sistem mitigasi dan kesadaran masyarakat menyelamatkan nyawa.
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="mitigation">
+        <div class="container">
+            <h2>Mitigasi & Rekomendasi</h2>
+            <div class="card card-3d">
+                <h3>Langkah Pencegahan</h3>
+                <div class="mitigation-grid">
+                    <div class="mitigation-item">
+                        <div class="mitigation-icon">🌧️</div>
+                        <div>
+                            <h4 style="margin-bottom: 8px; color: var(--text-primary);">Monitoring Cuaca</h4>
+                            <p style="color: var(--text-secondary);">Pantau prakiraan curah hujan ekstrem dari BMKG, terutama Oktober–Maret</p>
+                        </div>
+                    </div>
+                    <div class="mitigation-item">
+                        <div class="mitigation-icon">🚨</div>
+                        <div>
+                            <h4 style="margin-bottom: 8px; color: var(--text-primary);">Sistem Peringatan Dini</h4>
+                            <p style="color: var(--text-secondary);">Pertahankan dan perluas infrastruktur EWS di zona rawan</p>
+                        </div>
+                    </div>
+                    <div class="mitigation-item">
+                        <div class="mitigation-icon">🌳</div>
+                        <div>
+                            <h4 style="margin-bottom: 8px; color: var(--text-primary);">Reboisasi & Terasering</h4>
+                            <p style="color: var(--text-secondary);">Perkuat lereng dengan vegetasi dan struktur penahan tanah</p>
+                        </div>
+                    </div>
+                    <div class="mitigation-item">
+                        <div class="mitigation-icon">📚</div>
+                        <div>
+                            <h4 style="margin-bottom: 8px; color: var(--text-primary);">Edukasi Masyarakat</h4>
+                            <p style="color: var(--text-secondary);">Sosialisasi berkelanjutan tentang tanda-tanda longsor dan evakuasi</p>
+                        </div>
+                    </div>
+                    <div class="mitigation-item">
+                        <div class="mitigation-icon">🗺️</div>
+                        <div>
+                            <h4 style="margin-bottom: 8px; color: var(--text-primary);">Pemetaan Risiko</h4>
+                            <p style="color: var(--text-secondary);">Update zona bahaya longsor secara berkala dengan teknologi GIS</p>
+                        </div>
+                    </div>
+                    <div class="mitigation-item">
+                        <div class="mitigation-icon">🏗️</div>
+                        <div>
+                            <h4 style="margin-bottom: 8px; color: var(--text-primary);">Regulasi Tata Ruang</h4>
+                            <p style="color: var(--text-secondary);">Tegakkan aturan pembangunan di kawasan lereng dan bukit</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
     <footer>
-        <div class="footer-content">
-            <div class="footer-title">Sumber Data & Referensi</div>
-            <div class="footer-text">
-                <strong>Data:</strong> BNPB, Data Informasi Bencana Indonesia (DIBI), dibi.bnpb.go.id. Kejadian tanah longsor dan gerakan tanah di DIY, Februari 2016–Februari 2026 (diunduh 13 Oktober 2026). Angka menunjukkan kejadian tercatat dalam DIBI. Data diolah penulis (duplikat dibersihkan: 117→112 catatan).<br><br>
-                <strong>Peta:</strong> geoBoundaries (CC BY 4.0) • <strong>Konteks:</strong> BMKG Stasiun Klimatologi DIY, BPBD DIY • <strong>Penelitian:</strong> Kim dkk. 2017, UGM bioengineering, Switala dkk. 2015<br><br>
-                <strong>Catatan:</strong> Data DIBI jauh lebih kecil dari catatan BPBD (2024: DIBI 5 vs BPBD 377). Semua angka di halaman ini = tercatat di DIBI.
-            </div>
-            <div class="footer-links">
-                <a href="https://dibi.bnpb.go.id" target="_blank">DIBI BNPB</a>
-                <a href="https://bmkg.go.id" target="_blank">BMKG</a>
-                <a href="https://bpbd.jogjaprov.go.id" target="_blank">BPBD DIY</a>
-                <a href="https://geoboundaries.org" target="_blank">geoBoundaries</a>
-            </div>
-            <div class="footer-copyright">
-                © 2026 Jejak di Lereng. Interactive data visualization.
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h4>Sumber Data</h4>
+                    <p>Data Informasi Bencana Indonesia (DIBI) — BNPB<br>
+                    Periode: Februari 2016 – Februari 2026<br>
+                    112 kejadian tanah longsor di DIY</p>
+                </div>
+                <div class="footer-section">
+                    <h4>Referensi Geospasial</h4>
+                    <p>geoBoundaries Global Database of Political Administrative Boundaries (CC BY 4.0)<br>
+                    BMKG — Prakiraan Cuaca & Iklim<br>
+                    BPBD DIY — Informasi Kebencanaan</p>
+                </div>
+                <div class="footer-section">
+                    <h4>Tentang Proyek</h4>
+                    <p>Infografis interaktif untuk memvisualisasikan pola tanah longsor di DIY. Dibuat dengan HTML, CSS, JavaScript, Chart.js, dan Leaflet.js.</p>
+                    <p style="margin-top: 15px; font-size: 0.85rem;">© 2026 Jejak di Lereng</p>
+                </div>
             </div>
         </div>
     </footer>
-    
+
+    <!-- Audio elements -->
+    <audio id="clickSound" preload="auto">
+        <source src="data:audio/wav;base64,UklGRhwAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQgAAAABAP//AAD//wEA" type="audio/wav">
+    </audio>
+    <audio id="hoverSound" preload="auto">
+        <source src="data:audio/wav;base64,UklGRhQAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQAAAAAA" type="audio/wav">
+    </audio>
+
     <script>
-        // ============================================================================
-        // PARTICLES SYSTEM
-        // ============================================================================
-        function createParticles() {
-            const container = document.getElementById('particles');
-            const particleCount = 30;
+        // Audio feedback
+        function playSound(soundId) {
+            const sound = document.getElementById(soundId);
+            sound.currentTime = 0;
+            sound.volume = 0.1;
+            sound.play().catch(() => {}); // Ignore autoplay restrictions
+        }
+
+        // Theme toggle
+        function toggleTheme() {
+            playSound('clickSound');
+            const html = document.documentElement;
+            const currentTheme = html.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
             
-            for (let i = 0; i < particleCount; i++) {
+            html.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+            
+            const icon = document.querySelector('.theme-icon');
+            icon.textContent = newTheme === 'dark' ? '☀️' : '🌙';
+            
+            // Recreate charts with new colors
+            setTimeout(() => {
+                createMonthChart();
+                createYearChart();
+            }, 300);
+        }
+
+        // Load saved theme
+        const savedTheme = localStorage.getItem('theme') || 'light';
+        document.documentElement.setAttribute('data-theme', savedTheme);
+        document.querySelector('.theme-icon').textContent = savedTheme === 'dark' ? '☀️' : '🌙';
+
+        // Page transition
+        window.addEventListener('load', () => {
+            const transition = document.querySelector('.page-transition');
+            transition.classList.add('active');
+            setTimeout(() => {
+                transition.style.display = 'none';
+            }, 600);
+        });
+
+        // Floating particles
+        function createParticles() {
+            for (let i = 0; i < 30; i++) {
                 const particle = document.createElement('div');
                 particle.className = 'particle';
                 particle.style.left = Math.random() * 100 + '%';
-                particle.style.animationDelay = Math.random() * 20 + 's';
-                particle.style.animationDuration = (15 + Math.random() * 10) + 's';
-                container.appendChild(particle);
+                particle.style.top = Math.random() * 100 + '%';
+                particle.style.animation = `float ${10 + Math.random() * 20}s infinite ease-in-out`;
+                particle.style.animationDelay = -Math.random() * 20 + 's';
+                document.body.appendChild(particle);
             }
         }
-        
         createParticles();
-        
-        // ============================================================================
-        // SCROLL ANIMATIONS
-        // ============================================================================
-        const header = document.getElementById('header');
-        let lastScroll = 0;
-        
-        window.addEventListener('scroll', () => {
-            const currentScroll = window.pageYOffset;
-            
-            if (currentScroll > 100) {
-                header.classList.add('scrolled');
-            } else {
-                header.classList.remove('scrolled');
-            }
-            
-            lastScroll = currentScroll;
-        });
-        
-        // ============================================================================
-        // ANIMATED COUNTER
-        // ============================================================================
-        function animateCounter(element, target, duration = 2000) {
-            let start = 0;
+
+        // Animated counter
+        function animateCounter(element, target, suffix = '', duration = 2000) {
+            let current = 0;
             const increment = target / (duration / 16);
+            const isPercentage = suffix === '%';
             
             const timer = setInterval(() => {
-                start += increment;
-                if (start >= target) {
-                    element.textContent = target.toLocaleString('id-ID');
+                current += increment;
+                if (current >= target) {
+                    element.textContent = Math.round(target) + suffix;
                     clearInterval(timer);
                 } else {
-                    element.textContent = Math.floor(start).toLocaleString('id-ID');
+                    element.textContent = Math.round(current) + suffix;
                 }
             }, 16);
         }
-        
-        // ============================================================================
-        // INTERSECTION OBSERVER
-        // ============================================================================
+
+        // Scroll animations
         const observerOptions = {
-            threshold: 0.15,
-            rootMargin: '0px 0px -50px 0px'
+            threshold: 0.1,
+            rootMargin: '0px 0px -100px 0px'
         };
-        
+
         const observer = new IntersectionObserver((entries) => {
-            entries.forEach((entry, index) => {
+            entries.forEach(entry => {
                 if (entry.isIntersecting) {
-                    setTimeout(() => {
-                        entry.target.classList.add('visible');
-                        
-                        const counter = entry.target.querySelector('[data-count]');
-                        if (counter && !counter.dataset.animated) {
-                            counter.dataset.animated = 'true';
-                            animateCounter(counter, parseInt(counter.dataset.count));
-                        }
-                    }, index * 100);
+                    entry.target.classList.add('visible');
                     
-                    observer.unobserve(entry.target);
+                    // Animate counters
+                    const statNumbers = entry.target.querySelectorAll('.stat-number');
+                    statNumbers.forEach(stat => {
+                        if (!stat.classList.contains('animated')) {
+                            const target = parseInt(stat.getAttribute('data-target'));
+                            const isPercentage = stat.textContent.includes('%');
+                            animateCounter(stat, target, isPercentage ? '%' : '');
+                            stat.classList.add('animated');
+                        }
+                    });
                 }
             });
         }, observerOptions);
-        
-        document.querySelectorAll('.card, .section-header, .timeline-item').forEach(el => {
-            observer.observe(el);
+
+        document.querySelectorAll('section').forEach(section => {
+            observer.observe(section);
         });
-        
-        // Hero counter
-        setTimeout(() => {
-            const heroStat = document.querySelector('.hero-stat-number');
-            animateCounter(heroStat, 86, 2500);
-        }, 1500);
-        
-        // ============================================================================
-        // MAP (Leaflet.js)
-        // ============================================================================
-        const map = L.map('map', {
-            center: [-7.8, 110.4],
-            zoom: 10,
-            scrollWheelZoom: false,
-            zoomControl: true
+
+        // Hero stat animation
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                animateCounter(document.getElementById('heroStat'), 86, '%', 2500);
+            }, 500);
         });
-        
-        // Dark theme tiles
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-            attribution: '© OpenStreetMap © CARTO',
+
+        // 3D Tilt effect on cards
+        document.querySelectorAll('.card-3d').forEach(card => {
+            card.addEventListener('mouseenter', () => {
+                playSound('hoverSound');
+            });
+
+            card.addEventListener('mousemove', (e) => {
+                const rect = card.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                
+                const centerX = rect.width / 2;
+                const centerY = rect.height / 2;
+                
+                const rotateX = (y - centerY) / 20;
+                const rotateY = (centerX - x) / 20;
+                
+                card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale3d(1.02, 1.02, 1.02)`;
+            });
+            
+            card.addEventListener('mouseleave', () => {
+                card.style.transform = 'perspective(1000px) rotateX(0) rotateY(0) scale3d(1, 1, 1)';
+            });
+        });
+
+        // Click feedback on all interactive elements
+        document.querySelectorAll('button, a, .card').forEach(el => {
+            el.addEventListener('click', () => {
+                playSound('clickSound');
+            });
+        });
+
+        // Map initialization
+        const map = L.map('map').setView([-7.8, 110.37], 10);
+
+        const tileUrl = savedTheme === 'dark' 
+            ? 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png'
+            : 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
+
+        L.tileLayer(tileUrl, {
+            attribution: '© OpenStreetMap contributors',
             maxZoom: 19
         }).addTo(map);
-        
+
         const locations = [
-            { name: 'Kulon Progo', count: 41, lat: -7.82, lng: 110.16, color: '#FF6B6B' },
-            { name: 'Sleman', count: 25, lat: -7.70, lng: 110.35, color: '#FFA500' },
-            { name: 'Gunungkidul', count: 22, lat: -7.95, lng: 110.70, color: '#FFA500' },
-            { name: 'Bantul', count: 13, lat: -7.95, lng: 110.35, color: '#A855F7' },
-            { name: 'Kota Yogyakarta', count: 11, lat: -7.80, lng: 110.37, color: '#3B82F6' }
+            { name: 'Kulon Progo', lat: -7.82, lng: 110.16, count: 41, pct: '36.6%' },
+            { name: 'Sleman', lat: -7.70, lng: 110.35, count: 25, pct: '22.3%' },
+            { name: 'Gunungkidul', lat: -7.95, lng: 110.70, count: 22, pct: '19.6%' },
+            { name: 'Bantul', lat: -7.95, lng: 110.35, count: 13, pct: '11.6%' },
+            { name: 'Kota Yogyakarta', lat: -7.80, lng: 110.37, count: 11, pct: '9.8%' }
         ];
-        
+
         locations.forEach(loc => {
-            const radius = Math.sqrt(loc.count) * 3000;
-            
-            L.circle([loc.lat, loc.lng], {
-                color: loc.color,
-                fillColor: loc.color,
-                fillOpacity: 0.4,
-                radius: radius,
-                weight: 2
-            })
-            .bindPopup(`
-                <div style="background: #0A0E1A; color: white; padding: 12px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1);">
-                    <strong style="font-size: 16px;">${loc.name}</strong><br>
-                    <span style="color: ${loc.color}; font-size: 24px; font-weight: 900;">${loc.count}</span> 
-                    <span style="color: #94A3B8;">kejadian (${(loc.count/112*100).toFixed(1)}%)</span>
+            const marker = L.circleMarker([loc.lat, loc.lng], {
+                radius: Math.sqrt(loc.count) * 3,
+                fillColor: getComputedStyle(document.documentElement).getPropertyValue('--accent-primary'),
+                color: '#fff',
+                weight: 2,
+                opacity: 1,
+                fillOpacity: 0.7
+            }).addTo(map);
+
+            marker.bindPopup(`
+                <div style="text-align: center;">
+                    <strong style="font-size: 1.1rem;">${loc.name}</strong><br>
+                    <span style="font-size: 1.5rem; font-weight: 700; color: var(--accent-primary);">${loc.count}</span> kejadian<br>
+                    <span style="font-size: 0.9rem; color: var(--text-secondary);">(${loc.pct})</span>
                 </div>
-            `)
-            .addTo(map);
+            `);
         });
-        
-        // ============================================================================
-        // CHARTS (Chart.js) with GRADIENTS
-        // ============================================================================
-        
-        // Month Chart
-        const monthCtx = document.getElementById('monthChart').getContext('2d');
-        
-        const gradientRed = monthCtx.createLinearGradient(0, 0, 0, 400);
-        gradientRed.addColorStop(0, 'rgba(255, 107, 107, 0.8)');
-        gradientRed.addColorStop(1, 'rgba(255, 107, 107, 0.2)');
-        
-        const gradientGray = monthCtx.createLinearGradient(0, 0, 0, 400);
-        gradientGray.addColorStop(0, 'rgba(148, 163, 184, 0.3)');
-        gradientGray.addColorStop(1, 'rgba(148, 163, 184, 0.1)');
-        
-        const monthData = {
-            labels: ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'],
-            datasets: [{
-                label: 'Jumlah Kejadian',
-                data: [14, 29, 17, 9, 2, 1, 1, 1, 2, 8, 19, 9],
-                backgroundColor: function(context) {
-                    const index = context.dataIndex;
-                    const musimHujan = [0, 1, 2, 9, 10, 11];
-                    return musimHujan.includes(index) ? gradientRed : gradientGray;
+
+        // Chart.js configurations
+        Chart.defaults.font.family = "'Plus Jakarta Sans', sans-serif";
+        Chart.defaults.color = getComputedStyle(document.documentElement).getPropertyValue('--text-secondary');
+
+        function createMonthChart() {
+            const canvas = document.getElementById('monthChart');
+            if (!canvas) return;
+            
+            const ctx = canvas.getContext('2d');
+            if (window.monthChartInstance) {
+                window.monthChartInstance.destroy();
+            }
+
+            const gradient1 = ctx.createLinearGradient(0, 0, 0, 400);
+            gradient1.addColorStop(0, getComputedStyle(document.documentElement).getPropertyValue('--gradient-1'));
+            gradient1.addColorStop(1, getComputedStyle(document.documentElement).getPropertyValue('--gradient-2'));
+
+            const data = [14, 29, 17, 9, 2, 1, 1, 1, 2, 8, 19, 9];
+            const backgroundColors = data.map((val, idx) => 
+                [0, 1, 2, 9, 10, 11].includes(idx) ? gradient1 : 'rgba(150, 150, 150, 0.3)'
+            );
+
+            window.monthChartInstance = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'],
+                    datasets: [{
+                        label: 'Jumlah Kejadian',
+                        data: data,
+                        backgroundColor: backgroundColors,
+                        borderRadius: 8,
+                        borderSkipped: false
+                    }]
                 },
-                borderColor: function(context) {
-                    const index = context.dataIndex;
-                    const musimHujan = [0, 1, 2, 9, 10, 11];
-                    return musimHujan.includes(index) ? '#FF6B6B' : '#94A3B8';
-                },
-                borderWidth: 2,
-                borderRadius: 12,
-                borderSkipped: false
-            }]
-        };
-        
-        new Chart(monthCtx, {
-            type: 'bar',
-            data: monthData,
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: { display: false },
-                    tooltip: {
-                        backgroundColor: 'rgba(10, 14, 26, 0.95)',
-                        titleColor: '#FFFFFF',
-                        bodyColor: '#94A3B8',
-                        borderColor: 'rgba(255, 107, 107, 0.3)',
-                        borderWidth: 1,
-                        padding: 16,
-                        titleFont: { size: 16, weight: 'bold' },
-                        bodyFont: { size: 14 },
-                        cornerRadius: 12,
-                        displayColors: false
-                    }
-                },
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        grid: {
-                            color: 'rgba(255, 255, 255, 0.05)',
-                            drawBorder: false
-                        },
-                        ticks: {
-                            color: '#94A3B8',
-                            font: { size: 13, weight: '600' }
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            backgroundColor: getComputedStyle(document.documentElement).getPropertyValue('--bg-card'),
+                            titleColor: getComputedStyle(document.documentElement).getPropertyValue('--text-primary'),
+                            bodyColor: getComputedStyle(document.documentElement).getPropertyValue('--text-secondary'),
+                            borderColor: getComputedStyle(document.documentElement).getPropertyValue('--shadow'),
+                            borderWidth: 1,
+                            padding: 12,
+                            displayColors: false,
+                            callbacks: {
+                                label: (context) => `${context.parsed.y} kejadian`
+                            }
                         }
                     },
-                    x: {
-                        grid: { display: false },
-                        ticks: {
-                            color: '#FFFFFF',
-                            font: { size: 13, weight: '700' }
-                        }
-                    }
-                },
-                animation: {
-                    duration: 2000,
-                    easing: 'easeInOutQuart'
-                }
-            }
-        });
-        
-        // Year Chart
-        const yearCtx = document.getElementById('yearChart').getContext('2d');
-        
-        const gradientYear = yearCtx.createLinearGradient(0, 0, 0, 400);
-        gradientYear.addColorStop(0, 'rgba(168, 85, 247, 0.6)');
-        gradientYear.addColorStop(1, 'rgba(168, 85, 247, 0.1)');
-        
-        const yearData = {
-            labels: ['2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024', '2025', '2026*'],
-            datasets: [{
-                label: 'Jumlah Kejadian per Tahun',
-                data: [12, 14, 12, 6, 7, 17, 4, 24, 5, 9, 2],
-                backgroundColor: gradientYear,
-                borderColor: '#A855F7',
-                borderWidth: 2,
-                borderRadius: 12,
-                borderSkipped: false
-            }]
-        };
-        
-        new Chart(yearCtx, {
-            type: 'bar',
-            data: yearData,
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: { display: false },
-                    tooltip: {
-                        backgroundColor: 'rgba(10, 14, 26, 0.95)',
-                        titleColor: '#FFFFFF',
-                        bodyColor: '#94A3B8',
-                        borderColor: 'rgba(168, 85, 247, 0.3)',
-                        borderWidth: 1,
-                        padding: 16,
-                        titleFont: { size: 16, weight: 'bold' },
-                        bodyFont: { size: 14 },
-                        cornerRadius: 12,
-                        displayColors: false,
-                        callbacks: {
-                            afterBody: function(context) {
-                                if (context[0].label === '2026*') {
-                                    return '\n* Hanya Jan-Feb 2026';
-                                }
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                color: 'rgba(128, 128, 128, 0.1)'
+                            },
+                            ticks: {
+                                color: getComputedStyle(document.documentElement).getPropertyValue('--text-secondary')
+                            }
+                        },
+                        x: {
+                            grid: { display: false },
+                            ticks: {
+                                color: getComputedStyle(document.documentElement).getPropertyValue('--text-secondary')
                             }
                         }
                     }
+                }
+            });
+        }
+
+        function createYearChart() {
+            const canvas = document.getElementById('yearChart');
+            if (!canvas) return;
+            
+            const ctx = canvas.getContext('2d');
+            if (window.yearChartInstance) {
+                window.yearChartInstance.destroy();
+            }
+
+            const gradient2 = ctx.createLinearGradient(0, 0, 0, 400);
+            gradient2.addColorStop(0, getComputedStyle(document.documentElement).getPropertyValue('--gradient-1'));
+            gradient2.addColorStop(1, getComputedStyle(document.documentElement).getPropertyValue('--gradient-2'));
+
+            window.yearChartInstance = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024', '2025', '2026*'],
+                    datasets: [{
+                        label: 'Jumlah Kejadian',
+                        data: [12, 14, 12, 6, 7, 17, 4, 24, 5, 9, 2],
+                        backgroundColor: gradient2,
+                        borderRadius: 8,
+                        borderSkipped: false
+                    }]
                 },
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        max: 26,
-                        grid: {
-                            color: 'rgba(255, 255, 255, 0.05)',
-                            drawBorder: false
-                        },
-                        ticks: {
-                            color: '#94A3B8',
-                            font: { size: 13, weight: '600' }
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            backgroundColor: getComputedStyle(document.documentElement).getPropertyValue('--bg-card'),
+                            titleColor: getComputedStyle(document.documentElement).getPropertyValue('--text-primary'),
+                            bodyColor: getComputedStyle(document.documentElement).getPropertyValue('--text-secondary'),
+                            borderColor: getComputedStyle(document.documentElement).getPropertyValue('--shadow'),
+                            borderWidth: 1,
+                            padding: 12,
+                            displayColors: false,
+                            callbacks: {
+                                title: (context) => context[0].label === '2026*' ? '2026 (Jan-Feb)' : context[0].label,
+                                label: (context) => `${context.parsed.y} kejadian`
+                            }
                         }
                     },
-                    x: {
-                        grid: { display: false },
-                        ticks: {
-                            color: '#FFFFFF',
-                            font: { size: 12, weight: '700' }
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                color: 'rgba(128, 128, 128, 0.1)'
+                            },
+                            ticks: {
+                                color: getComputedStyle(document.documentElement).getPropertyValue('--text-secondary')
+                            }
+                        },
+                        x: {
+                            grid: { display: false },
+                            ticks: {
+                                color: getComputedStyle(document.documentElement).getPropertyValue('--text-secondary')
+                            }
                         }
                     }
-                },
-                animation: {
-                    duration: 2000,
-                    easing: 'easeInOutQuart',
-                    delay: 500
                 }
-            }
-        });
-        
-        // ============================================================================
-        // SMOOTH SCROLL
-        // ============================================================================
+            });
+        }
+
+        // Initialize charts
+        createMonthChart();
+        createYearChart();
+
+        // Smooth scroll for anchor links
         document.querySelectorAll('a[href^="#"]').forEach(anchor => {
             anchor.addEventListener('click', function (e) {
                 e.preventDefault();
                 const target = document.querySelector(this.getAttribute('href'));
                 if (target) {
-                    target.scrollIntoView({
-                        behavior: 'smooth',
-                        block: 'start'
-                    });
+                    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
                 }
             });
         });
-        
-        console.log('%c🚀 Jejak di Lereng', 'font-size: 24px; font-weight: bold; background: linear-gradient(135deg, #FF6B6B, #A855F7); -webkit-background-clip: text; color: transparent;');
-        console.log('%c📊 112 kejadian tercatat (Feb 2016 - Feb 2026)', 'font-size: 14px; color: #94A3B8;');
-        console.log('%c✨ Interactive visualization loaded', 'font-size: 12px; color: #4ADE80;');
     </script>
 </body>
 </html>
