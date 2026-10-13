@@ -7,7 +7,7 @@
     
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;700;800&display=swap" rel="stylesheet">
     
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
@@ -24,30 +24,82 @@
         }
         
         :root {
-            --color-bg: #FAFAFA;
-            --color-text: #1D1D1F;
-            --color-text-secondary: #6E6E73;
-            --color-accent: #E74C3C;
-            --color-accent-light: #F39C12;
-            --color-surface: #FFFFFF;
-            --color-border: rgba(0,0,0,0.1);
-            --color-success: #27AE60;
+            --color-bg: #0A0E1A;
+            --color-text: #FFFFFF;
+            --color-text-secondary: #94A3B8;
+            --color-accent: #FF6B6B;
+            --color-accent-light: #FFA500;
+            --color-accent-dark: #DC143C;
+            --color-surface: rgba(255, 255, 255, 0.05);
+            --color-border: rgba(255, 255, 255, 0.1);
+            --color-success: #4ADE80;
+            --color-purple: #A855F7;
+            --color-blue: #3B82F6;
             --spacing-xs: 8px;
             --spacing-sm: 16px;
             --spacing-md: 32px;
             --spacing-lg: 64px;
             --spacing-xl: 128px;
-            --radius: 16px;
-            --transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            --radius: 24px;
+            --transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
         }
         
         body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
             background: var(--color-bg);
             color: var(--color-text);
             line-height: 1.6;
             overflow-x: hidden;
             -webkit-font-smoothing: antialiased;
+            position: relative;
+        }
+        
+        /* Animated Background */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 20% 50%, rgba(255, 107, 107, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(168, 85, 247, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 40% 90%, rgba(59, 130, 246, 0.1) 0%, transparent 50%);
+            z-index: -1;
+            animation: backgroundShift 20s ease infinite;
+        }
+        
+        @keyframes backgroundShift {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.8; transform: scale(1.1); }
+        }
+        
+        /* Floating particles */
+        .particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+        }
+        
+        .particle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            animation: float 20s infinite;
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0) translateX(0); opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { transform: translateY(-100vh) translateX(100px); opacity: 0; }
         }
         
         /* Smooth scroll */
@@ -61,16 +113,21 @@
             top: 0;
             left: 0;
             right: 0;
-            background: rgba(250, 250, 250, 0.8);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
+            background: rgba(10, 14, 26, 0.8);
+            backdrop-filter: blur(30px);
+            -webkit-backdrop-filter: blur(30px);
             border-bottom: 1px solid var(--color-border);
             z-index: 1000;
             transition: var(--transition);
         }
         
+        header.scrolled {
+            background: rgba(10, 14, 26, 0.95);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
+        }
+        
         nav {
-            max-width: 1200px;
+            max-width: 1400px;
             margin: 0 auto;
             padding: var(--spacing-sm) var(--spacing-md);
             display: flex;
@@ -79,9 +136,12 @@
         }
         
         .logo {
-            font-size: 18px;
-            font-weight: 700;
-            color: var(--color-text);
+            font-size: 20px;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--color-accent) 0%, var(--color-purple) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
             text-decoration: none;
         }
         
@@ -95,12 +155,28 @@
             color: var(--color-text-secondary);
             text-decoration: none;
             font-size: 14px;
-            font-weight: 500;
+            font-weight: 600;
             transition: var(--transition);
+            position: relative;
+        }
+        
+        .nav-links a::after {
+            content: '';
+            position: absolute;
+            bottom: -4px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: linear-gradient(90deg, var(--color-accent), var(--color-purple));
+            transition: width 0.3s ease;
         }
         
         .nav-links a:hover {
-            color: var(--color-accent);
+            color: var(--color-text);
+        }
+        
+        .nav-links a:hover::after {
+            width: 100%;
         }
         
         /* Hero Section */
@@ -116,35 +192,61 @@
             overflow: hidden;
         }
         
-        .hero::before {
-            content: '';
+        /* Animated blobs */
+        .blob {
             position: absolute;
-            top: -50%;
-            right: -30%;
-            width: 800px;
-            height: 800px;
-            background: radial-gradient(circle, rgba(231, 76, 60, 0.1) 0%, transparent 70%);
             border-radius: 50%;
-            animation: float 20s ease-in-out infinite;
+            filter: blur(100px);
+            opacity: 0.3;
+            animation: blob 20s infinite;
         }
         
-        @keyframes float {
-            0%, 100% { transform: translate(0, 0) scale(1); }
-            50% { transform: translate(-30px, -30px) scale(1.1); }
+        .blob-1 {
+            width: 600px;
+            height: 600px;
+            background: linear-gradient(135deg, var(--color-accent), var(--color-accent-light));
+            top: -200px;
+            right: -200px;
+            animation-delay: 0s;
+        }
+        
+        .blob-2 {
+            width: 500px;
+            height: 500px;
+            background: linear-gradient(135deg, var(--color-purple), var(--color-blue));
+            bottom: -150px;
+            left: -150px;
+            animation-delay: 4s;
+        }
+        
+        .blob-3 {
+            width: 400px;
+            height: 400px;
+            background: linear-gradient(135deg, var(--color-blue), var(--color-success));
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            animation-delay: 8s;
+        }
+        
+        @keyframes blob {
+            0%, 100% { transform: translate(0, 0) scale(1) rotate(0deg); }
+            33% { transform: translate(30px, -50px) scale(1.1) rotate(120deg); }
+            66% { transform: translate(-20px, 20px) scale(0.9) rotate(240deg); }
         }
         
         .hero-content {
-            max-width: 900px;
+            max-width: 1000px;
             position: relative;
             z-index: 1;
             opacity: 0;
-            animation: fadeInUp 1s ease forwards 0.3s;
+            animation: fadeInUp 1.2s ease forwards 0.3s;
         }
         
         @keyframes fadeInUp {
             from {
                 opacity: 0;
-                transform: translateY(30px);
+                transform: translateY(50px);
             }
             to {
                 opacity: 1;
@@ -152,57 +254,91 @@
             }
         }
         
-        .hero-subtitle {
-            font-size: 14px;
-            font-weight: 600;
-            color: var(--color-accent);
+        .hero-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, rgba(255, 107, 107, 0.2), rgba(168, 85, 247, 0.2));
+            border: 1px solid rgba(255, 107, 107, 0.3);
+            border-radius: 50px;
+            padding: 8px 20px;
+            font-size: 12px;
+            font-weight: 700;
             text-transform: uppercase;
             letter-spacing: 1.5px;
-            margin-bottom: var(--spacing-sm);
+            margin-bottom: var(--spacing-md);
+            backdrop-filter: blur(10px);
         }
         
         .hero-title {
-            font-size: clamp(40px, 8vw, 80px);
+            font-size: clamp(48px, 10vw, 96px);
             font-weight: 900;
             line-height: 1.1;
-            margin-bottom: var(--spacing-sm);
-            background: linear-gradient(135deg, var(--color-text) 0%, var(--color-accent) 100%);
+            margin-bottom: var(--spacing-md);
+            background: linear-gradient(135deg, #FFFFFF 0%, var(--color-accent) 50%, var(--color-purple) 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
+            text-shadow: 0 0 80px rgba(255, 107, 107, 0.3);
         }
         
         .hero-description {
-            font-size: clamp(16px, 2vw, 20px);
+            font-size: clamp(18px, 2.5vw, 24px);
             color: var(--color-text-secondary);
-            margin-bottom: var(--spacing-md);
-            max-width: 600px;
+            margin-bottom: var(--spacing-lg);
+            max-width: 700px;
             margin-left: auto;
             margin-right: auto;
+            line-height: 1.7;
         }
         
         .hero-stat {
             display: inline-block;
-            background: var(--color-surface);
-            border: 1px solid var(--color-border);
+            background: linear-gradient(135deg, rgba(255, 107, 107, 0.1), rgba(168, 85, 247, 0.1));
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
             border-radius: var(--radius);
-            padding: var(--spacing-md) var(--spacing-lg);
+            padding: var(--spacing-lg);
             margin-top: var(--spacing-md);
-            box-shadow: 0 10px 40px rgba(0,0,0,0.05);
+            box-shadow: 
+                0 20px 60px rgba(0, 0, 0, 0.3),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .hero-stat::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+            animation: shine 3s infinite;
+        }
+        
+        @keyframes shine {
+            0% { left: -100%; }
+            100% { left: 200%; }
         }
         
         .hero-stat-number {
-            font-size: 72px;
+            font-size: 96px;
             font-weight: 900;
-            color: var(--color-accent);
+            background: linear-gradient(135deg, var(--color-accent), var(--color-accent-light));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
             line-height: 1;
             display: block;
+            text-shadow: 0 0 60px rgba(255, 107, 107, 0.5);
         }
         
         .hero-stat-label {
-            font-size: 16px;
+            font-size: 18px;
             color: var(--color-text-secondary);
-            margin-top: var(--spacing-xs);
+            margin-top: var(--spacing-sm);
+            font-weight: 600;
         }
         
         .scroll-indicator {
@@ -210,88 +346,126 @@
             bottom: var(--spacing-lg);
             left: 50%;
             transform: translateX(-50%);
-            width: 24px;
-            height: 40px;
-            border: 2px solid var(--color-text-secondary);
-            border-radius: 12px;
-            opacity: 0.5;
-            animation: fadeInUp 1s ease forwards 1s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: var(--spacing-xs);
+            opacity: 0;
+            animation: fadeInUp 1s ease forwards 1.5s;
         }
         
-        .scroll-indicator::before {
+        .scroll-indicator span {
+            font-size: 12px;
+            color: var(--color-text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .scroll-indicator::after {
             content: '';
-            position: absolute;
-            top: 8px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 4px;
-            height: 8px;
-            background: var(--color-text-secondary);
-            border-radius: 2px;
-            animation: scroll 2s ease infinite;
+            width: 2px;
+            height: 40px;
+            background: linear-gradient(to bottom, var(--color-accent), transparent);
+            animation: scrollLine 2s ease infinite;
         }
         
-        @keyframes scroll {
-            0% { transform: translate(-50%, 0); opacity: 1; }
-            100% { transform: translate(-50%, 16px); opacity: 0; }
+        @keyframes scrollLine {
+            0% { transform: translateY(0); opacity: 1; }
+            100% { transform: translateY(20px); opacity: 0; }
         }
         
         /* Section */
         section {
-            max-width: 1200px;
+            max-width: 1400px;
             margin: 0 auto;
             padding: var(--spacing-xl) var(--spacing-md);
+            position: relative;
+            z-index: 1;
         }
         
         .section-header {
             text-align: center;
             margin-bottom: var(--spacing-lg);
-        }
-        
-        .section-title {
-            font-size: clamp(32px, 5vw, 48px);
-            font-weight: 800;
-            margin-bottom: var(--spacing-sm);
-        }
-        
-        .section-subtitle {
-            font-size: 18px;
-            color: var(--color-text-secondary);
-            max-width: 600px;
-            margin: 0 auto;
-        }
-        
-        /* Card */
-        .card {
-            background: var(--color-surface);
-            border: 1px solid var(--color-border);
-            border-radius: var(--radius);
-            padding: var(--spacing-md);
-            box-shadow: 0 4px 20px rgba(0,0,0,0.04);
-            transition: var(--transition);
             opacity: 0;
             transform: translateY(30px);
+            transition: var(--transition);
         }
         
-        .card.visible {
+        .section-header.visible {
             opacity: 1;
             transform: translateY(0);
         }
         
-        .card:hover {
-            box-shadow: 0 12px 40px rgba(0,0,0,0.08);
-            transform: translateY(-4px);
+        .section-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, rgba(255, 107, 107, 0.2), rgba(168, 85, 247, 0.2));
+            border: 1px solid rgba(255, 107, 107, 0.3);
+            border-radius: 50px;
+            padding: 6px 16px;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1.2px;
+            margin-bottom: var(--spacing-sm);
+        }
+        
+        .section-title {
+            font-size: clamp(36px, 6vw, 64px);
+            font-weight: 900;
+            margin-bottom: var(--spacing-sm);
+            background: linear-gradient(135deg, #FFFFFF 0%, var(--color-text-secondary) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .section-subtitle {
+            font-size: 20px;
+            color: var(--color-text-secondary);
+            max-width: 700px;
+            margin: 0 auto;
+            line-height: 1.7;
         }
         
         /* Glass Card */
-        .glass-card {
-            background: rgba(255, 255, 255, 0.7);
+        .card {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.02));
             backdrop-filter: blur(20px);
             -webkit-backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
             border-radius: var(--radius);
             padding: var(--spacing-md);
-            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            box-shadow: 
+                0 8px 32px rgba(0, 0, 0, 0.3),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            transition: var(--transition);
+            opacity: 0;
+            transform: translateY(30px) scale(0.95);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.5), transparent);
+        }
+        
+        .card.visible {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
+        
+        .card:hover {
+            transform: translateY(-8px) scale(1.02);
+            box-shadow: 
+                0 20px 60px rgba(255, 107, 107, 0.2),
+                inset 0 1px 0 rgba(255, 255, 255, 0.2);
+            border-color: rgba(255, 107, 107, 0.3);
         }
         
         /* Grid */
@@ -302,75 +476,105 @@
         }
         
         .grid-2 {
-            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
         }
         
         /* Map Section */
         #map {
-            height: 500px;
+            height: 600px;
             border-radius: var(--radius);
             overflow: hidden;
-            box-shadow: 0 12px 40px rgba(0,0,0,0.1);
+            box-shadow: 
+                0 20px 60px rgba(0, 0, 0, 0.4),
+                inset 0 0 0 1px rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.1);
         }
         
         /* Chart */
         .chart-container {
             position: relative;
-            height: 400px;
-            background: var(--color-surface);
+            height: 450px;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.02));
+            backdrop-filter: blur(20px);
             border-radius: var(--radius);
             padding: var(--spacing-md);
-            box-shadow: 0 4px 20px rgba(0,0,0,0.04);
+            box-shadow: 
+                0 8px 32px rgba(0, 0, 0, 0.3),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.1);
         }
         
         /* Stats Grid */
         .stats-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
             gap: var(--spacing-md);
             margin-top: var(--spacing-lg);
         }
         
         .stat-card {
             text-align: center;
-            padding: var(--spacing-md);
-            background: var(--color-surface);
+            padding: var(--spacing-lg) var(--spacing-md);
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.02));
+            backdrop-filter: blur(20px);
             border-radius: var(--radius);
-            border: 1px solid var(--color-border);
+            border: 1px solid rgba(255, 255, 255, 0.1);
             transition: var(--transition);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: linear-gradient(90deg, var(--color-accent), var(--color-purple), var(--color-blue));
+            transform: scaleX(0);
+            transition: transform 0.5s ease;
+        }
+        
+        .stat-card:hover::before {
+            transform: scaleX(1);
         }
         
         .stat-card:hover {
-            border-color: var(--color-accent);
-            transform: translateY(-4px);
-            box-shadow: 0 12px 40px rgba(231, 76, 60, 0.1);
+            transform: translateY(-8px) scale(1.03);
+            box-shadow: 0 20px 60px rgba(255, 107, 107, 0.3);
+            border-color: rgba(255, 107, 107, 0.5);
         }
         
         .stat-number {
-            font-size: 48px;
+            font-size: 56px;
             font-weight: 900;
-            color: var(--color-accent);
+            background: linear-gradient(135deg, var(--color-accent), var(--color-accent-light));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
             line-height: 1;
-            margin-bottom: var(--spacing-xs);
+            margin-bottom: var(--spacing-sm);
         }
         
         .stat-label {
             font-size: 14px;
-            color: var(--color-text-secondary);
+            color: var(--color-text);
             text-transform: uppercase;
-            letter-spacing: 0.5px;
+            letter-spacing: 1px;
+            font-weight: 700;
+            margin-bottom: var(--spacing-xs);
         }
         
         .stat-description {
             font-size: 12px;
             color: var(--color-text-secondary);
-            margin-top: var(--spacing-xs);
         }
         
         /* Timeline */
         .timeline {
             position: relative;
-            padding: var(--spacing-md) 0;
+            padding: var(--spacing-lg) 0;
         }
         
         .timeline::before {
@@ -380,117 +584,193 @@
             top: 0;
             bottom: 0;
             width: 2px;
-            background: var(--color-border);
+            background: linear-gradient(to bottom, var(--color-accent), var(--color-purple), var(--color-blue));
         }
         
         .timeline-item {
             position: relative;
-            margin-bottom: var(--spacing-lg);
+            margin-bottom: var(--spacing-xl);
             display: flex;
             align-items: center;
+            opacity: 0;
+            transform: translateX(-50px);
+            transition: var(--transition);
+        }
+        
+        .timeline-item.visible {
+            opacity: 1;
+            transform: translateX(0);
         }
         
         .timeline-item:nth-child(odd) {
             flex-direction: row-reverse;
-            text-align: right;
+            transform: translateX(50px);
+        }
+        
+        .timeline-item:nth-child(odd).visible {
+            transform: translateX(0);
         }
         
         .timeline-content {
             width: 45%;
             padding: var(--spacing-md);
-            background: var(--color-surface);
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.02));
+            backdrop-filter: blur(20px);
             border-radius: var(--radius);
-            border: 1px solid var(--color-border);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            transition: var(--transition);
+        }
+        
+        .timeline-content:hover {
+            transform: scale(1.05);
+            box-shadow: 0 12px 40px rgba(255, 107, 107, 0.3);
         }
         
         .timeline-dot {
             position: absolute;
             left: 50%;
             transform: translateX(-50%);
-            width: 16px;
-            height: 16px;
-            background: var(--color-accent);
+            width: 20px;
+            height: 20px;
+            background: linear-gradient(135deg, var(--color-accent), var(--color-purple));
             border: 4px solid var(--color-bg);
             border-radius: 50%;
             z-index: 1;
+            box-shadow: 0 0 20px rgba(255, 107, 107, 0.5);
         }
         
         /* Icon Grid */
         .icon-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
             gap: var(--spacing-md);
             margin-top: var(--spacing-lg);
         }
         
         .icon-card {
             text-align: center;
-            padding: var(--spacing-md);
-            background: var(--color-surface);
+            padding: var(--spacing-lg) var(--spacing-md);
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.02));
+            backdrop-filter: blur(20px);
             border-radius: var(--radius);
-            border: 1px solid var(--color-border);
+            border: 1px solid rgba(255, 255, 255, 0.1);
             transition: var(--transition);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .icon-card::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0);
+            width: 200px;
+            height: 200px;
+            background: radial-gradient(circle, rgba(255, 107, 107, 0.2), transparent);
+            border-radius: 50%;
+            transition: transform 0.6s ease;
+        }
+        
+        .icon-card:hover::before {
+            transform: translate(-50%, -50%) scale(1);
         }
         
         .icon-card:hover {
-            border-color: var(--color-accent);
-            transform: scale(1.05);
-            box-shadow: 0 12px 40px rgba(0,0,0,0.1);
+            transform: translateY(-12px) scale(1.05);
+            border-color: rgba(255, 107, 107, 0.5);
+            box-shadow: 0 20px 60px rgba(255, 107, 107, 0.3);
         }
         
         .icon {
-            font-size: 48px;
+            font-size: 56px;
             margin-bottom: var(--spacing-sm);
+            filter: drop-shadow(0 4px 20px rgba(255, 107, 107, 0.3));
+            transition: var(--transition);
+        }
+        
+        .icon-card:hover .icon {
+            transform: scale(1.2) rotate(5deg);
         }
         
         .icon-title {
-            font-weight: 600;
+            font-weight: 700;
             margin-bottom: var(--spacing-xs);
+            font-size: 16px;
         }
         
         .icon-description {
-            font-size: 12px;
+            font-size: 13px;
             color: var(--color-text-secondary);
+            line-height: 1.6;
         }
         
         /* Alert Box */
         .alert {
-            background: linear-gradient(135deg, var(--color-accent) 0%, var(--color-accent-light) 100%);
-            color: white;
+            background: linear-gradient(135deg, rgba(255, 107, 107, 0.2), rgba(168, 85, 247, 0.2));
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 107, 107, 0.3);
+            color: var(--color-text);
             padding: var(--spacing-md) var(--spacing-lg);
             border-radius: var(--radius);
             text-align: center;
             font-weight: 600;
             margin: var(--spacing-lg) 0;
-            box-shadow: 0 8px 32px rgba(231, 76, 60, 0.3);
+            box-shadow: 0 8px 32px rgba(255, 107, 107, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .alert::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+            animation: alertShine 3s infinite;
+        }
+        
+        @keyframes alertShine {
+            0% { left: -100%; }
+            100% { left: 200%; }
         }
         
         /* Footer */
         footer {
-            background: var(--color-text);
-            color: rgba(255,255,255,0.6);
-            padding: var(--spacing-lg) var(--spacing-md);
+            background: linear-gradient(to top, rgba(0, 0, 0, 0.5), transparent);
+            backdrop-filter: blur(20px);
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            color: var(--color-text-secondary);
+            padding: var(--spacing-xl) var(--spacing-md) var(--spacing-lg);
             margin-top: var(--spacing-xl);
         }
         
         .footer-content {
-            max-width: 1200px;
+            max-width: 1400px;
             margin: 0 auto;
             text-align: center;
         }
         
         .footer-title {
-            color: white;
-            font-size: 18px;
-            font-weight: 700;
+            color: var(--color-text);
+            font-size: 20px;
+            font-weight: 800;
             margin-bottom: var(--spacing-md);
+            background: linear-gradient(135deg, var(--color-accent), var(--color-purple));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
         }
         
         .footer-text {
-            font-size: 12px;
-            line-height: 1.8;
-            max-width: 800px;
+            font-size: 13px;
+            line-height: 1.9;
+            max-width: 900px;
             margin: 0 auto var(--spacing-md);
+            opacity: 0.8;
         }
         
         .footer-links {
@@ -498,17 +778,29 @@
             gap: var(--spacing-md);
             justify-content: center;
             flex-wrap: wrap;
-            font-size: 12px;
+            font-size: 13px;
+            margin-bottom: var(--spacing-md);
         }
         
         .footer-links a {
-            color: rgba(255,255,255,0.6);
+            color: var(--color-text-secondary);
             text-decoration: none;
             transition: var(--transition);
+            padding: 8px 16px;
+            border-radius: 50px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
         }
         
         .footer-links a:hover {
-            color: white;
+            color: var(--color-text);
+            border-color: var(--color-accent);
+            background: rgba(255, 107, 107, 0.1);
+        }
+        
+        .footer-copyright {
+            margin-top: var(--spacing-md);
+            opacity: 0.5;
+            font-size: 12px;
         }
         
         /* Responsive */
@@ -522,13 +814,12 @@
             }
             
             .timeline::before {
-                left: 20px;
+                left: 30px;
             }
             
             .timeline-item {
                 flex-direction: row !important;
-                text-align: left !important;
-                padding-left: 50px;
+                padding-left: 70px;
             }
             
             .timeline-content {
@@ -536,24 +827,42 @@
             }
             
             .timeline-dot {
-                left: 20px;
+                left: 30px;
+            }
+            
+            .hero-stat-number {
+                font-size: 64px;
             }
         }
         
-        /* Loading Animation */
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
+        /* Loading state */
+        .loading {
+            position: relative;
         }
         
-        .loading {
-            animation: pulse 2s ease infinite;
+        .loading::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, var(--color-accent), var(--color-purple));
+            animation: loading 1.5s ease infinite;
+        }
+        
+        @keyframes loading {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
         }
     </style>
 </head>
 <body>
+    <!-- Particles -->
+    <div class="particles" id="particles"></div>
+    
     <!-- Header -->
-    <header>
+    <header id="header">
         <nav>
             <a href="#" class="logo">Jejak di Lereng</a>
             <ul class="nav-links">
@@ -568,22 +877,30 @@
     
     <!-- Hero Section -->
     <section class="hero">
+        <div class="blob blob-1"></div>
+        <div class="blob blob-2"></div>
+        <div class="blob blob-3"></div>
+        
         <div class="hero-content">
-            <div class="hero-subtitle">Data Tanah Longsor DIY 2016–2026</div>
+            <div class="hero-badge">Data Tanah Longsor DIY 2016–2026</div>
             <h1 class="hero-title">Jejak di Lereng</h1>
-            <p class="hero-description">Membaca pola tanah longsor di Daerah Istimewa Yogyakarta melalui 112 kejadian tercatat dalam dekade terakhir.</p>
+            <p class="hero-description">Membaca pola tanah longsor di Daerah Istimewa Yogyakarta melalui 112 kejadian tercatat dalam dekade terakhir</p>
             
             <div class="hero-stat">
                 <span class="hero-stat-number" data-count="86">0</span>
                 <div class="hero-stat-label">Persen kejadian terjadi Oktober–Maret</div>
             </div>
         </div>
-        <div class="scroll-indicator"></div>
+        
+        <div class="scroll-indicator">
+            <span>Scroll</span>
+        </div>
     </section>
     
     <!-- Overview Section -->
     <section id="overview">
         <div class="section-header">
+            <div class="section-badge">Ringkasan Data</div>
             <h2 class="section-title">112 Kejadian Tercatat</h2>
             <p class="section-subtitle">Periode Februari 2016 hingga Februari 2026 di lima kabupaten/kota DIY</p>
         </div>
@@ -609,7 +926,7 @@
             </div>
         </div>
         
-        <div class="alert" style="margin-top: 3rem;">
+        <div class="alert">
             ⚠️ Sejak 2020 hingga Februari 2026: 68 catatan longsor, 0 korban jiwa tercatat
         </div>
     </section>
@@ -617,13 +934,14 @@
     <!-- Lokasi Section -->
     <section id="lokasi">
         <div class="section-header">
+            <div class="section-badge">Sebaran Wilayah</div>
             <h2 class="section-title">Di Mana Longsor Tercatat?</h2>
             <p class="section-subtitle">Kulon Progo mencatat kejadian terbanyak dengan 36,6% dari total</p>
         </div>
         
-        <div id="map"></div>
+        <div id="map" class="card"></div>
         
-        <div class="stats-grid" style="margin-top: 2rem;">
+        <div class="stats-grid" style="margin-top: 3rem;">
             <div class="stat-card card">
                 <div class="stat-number">41</div>
                 <div class="stat-label">Kulon Progo</div>
@@ -655,6 +973,7 @@
     <!-- Waktu Section -->
     <section id="waktu">
         <div class="section-header">
+            <div class="section-badge">Pola Temporal</div>
             <h2 class="section-title">Kapan Longsor Terjadi?</h2>
             <p class="section-subtitle">Pola kejadian selaras dengan musim hujan di DIY</p>
         </div>
@@ -663,11 +982,11 @@
             <canvas id="monthChart"></canvas>
         </div>
         
-        <div class="alert" style="margin-top: 2rem;">
+        <div class="alert">
             📊 96 dari 112 catatan (85,7%) terjadi pada Oktober–Maret
         </div>
         
-        <div class="chart-container card" style="margin-top: 2rem;">
+        <div class="chart-container card" style="margin-top: 3rem;">
             <canvas id="yearChart"></canvas>
         </div>
     </section>
@@ -675,30 +994,31 @@
     <!-- Dampak Section -->
     <section id="dampak">
         <div class="section-header">
-            <h2 class="section-title">Dampak yang Tercatat</h2>
-            <p class="section-subtitle">Perubahan pola korban jiwa sejak 2020</p>
+            <div class="section-badge">Dampak Tercatat</div>
+            <h2 class="section-title">Perubahan Pola Korban</h2>
+            <p class="section-subtitle">Tren positif sejak 2020 menunjukkan perbaikan kesiapsiagaan</p>
         </div>
         
         <div class="timeline">
             <div class="timeline-item">
-                <div class="timeline-content card">
-                    <h3>2016-2019</h3>
+                <div class="timeline-content">
+                    <h3 style="color: var(--color-accent); font-size: 20px; margin-bottom: 0.5rem;">2016-2019</h3>
                     <p><strong>20 jiwa meninggal</strong> tercatat dalam periode ini. Kejadian terakhir dengan korban jiwa: 1 September 2019 di Sleman.</p>
                 </div>
                 <div class="timeline-dot"></div>
             </div>
             
             <div class="timeline-item">
-                <div class="timeline-content card">
-                    <h3>2020-2026</h3>
+                <div class="timeline-content">
+                    <h3 style="color: var(--color-success); font-size: 20px; margin-bottom: 0.5rem;">2020-2026</h3>
                     <p><strong>68 catatan longsor, 0 korban jiwa.</strong> Meski jumlah kejadian terus ada, tidak ada korban jiwa tercatat sejak 2020.</p>
                 </div>
                 <div class="timeline-dot"></div>
             </div>
             
             <div class="timeline-item">
-                <div class="timeline-content card">
-                    <h3>Februari 2023</h3>
+                <div class="timeline-content">
+                    <h3 style="color: var(--color-purple); font-size: 20px; margin-bottom: 0.5rem;">Februari 2023</h3>
                     <p><strong>17 kejadian dalam satu bulan</strong> — episode terbanyak dalam satu periode bulanan.</p>
                 </div>
                 <div class="timeline-dot"></div>
@@ -709,8 +1029,9 @@
     <!-- Mitigasi Section -->
     <section id="mitigasi">
         <div class="section-header">
-            <h2 class="section-title">Kesiapsiagaan Bersama</h2>
-            <p class="section-subtitle">Langkah mitigasi yang dianjurkan</p>
+            <div class="section-badge">Aksi Bersama</div>
+            <h2 class="section-title">Kesiapsiagaan Kolaboratif</h2>
+            <p class="section-subtitle">Langkah mitigasi yang dianjurkan untuk mengurangi risiko</p>
         </div>
         
         <div class="icon-grid">
@@ -745,9 +1066,9 @@
             </div>
         </div>
         
-        <div class="glass-card" style="margin-top: 3rem; text-align: center;">
-            <h3 style="margin-bottom: 1rem;">Peran Vegetasi</h3>
-            <p style="color: var(--color-text-secondary);">Penelitian menunjukkan vegetasi membantu mengurangi risiko longsor dangkal melalui dua cara: <strong>akar menguatkan tanah secara mekanis</strong>, dan <strong>tanaman menyerap air dari tanah</strong>. Namun, pemilihan jenis dan lokasi tanam harus tepat agar tidak membebani lereng.</p>
+        <div class="card" style="margin-top: 3rem; padding: 2rem; text-align: center;">
+            <h3 style="margin-bottom: 1rem; font-size: 24px;">🌱 Peran Vegetasi</h3>
+            <p style="color: var(--color-text-secondary); line-height: 1.8;">Penelitian menunjukkan vegetasi membantu mengurangi risiko longsor dangkal melalui dua cara: <strong style="color: var(--color-text);">akar menguatkan tanah secara mekanis</strong>, dan <strong style="color: var(--color-text);">tanaman menyerap air dari tanah</strong>. Namun, pemilihan jenis dan lokasi tanam harus tepat agar tidak membebani lereng.</p>
         </div>
     </section>
     
@@ -766,35 +1087,53 @@
                 <a href="https://bpbd.jogjaprov.go.id" target="_blank">BPBD DIY</a>
                 <a href="https://geoboundaries.org" target="_blank">geoBoundaries</a>
             </div>
-            <div style="margin-top: 2rem; opacity: 0.4; font-size: 11px;">
-                © 2026 Jejak di Lereng. Data visualization for educational purposes.
+            <div class="footer-copyright">
+                © 2026 Jejak di Lereng. Interactive data visualization.
             </div>
         </div>
     </footer>
     
     <script>
         // ============================================================================
-        // ANIMATIONS & INTERACTIONS
+        // PARTICLES SYSTEM
         // ============================================================================
+        function createParticles() {
+            const container = document.getElementById('particles');
+            const particleCount = 30;
+            
+            for (let i = 0; i < particleCount; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.style.left = Math.random() * 100 + '%';
+                particle.style.animationDelay = Math.random() * 20 + 's';
+                particle.style.animationDuration = (15 + Math.random() * 10) + 's';
+                container.appendChild(particle);
+            }
+        }
         
-        // Scroll header effect
+        createParticles();
+        
+        // ============================================================================
+        // SCROLL ANIMATIONS
+        // ============================================================================
+        const header = document.getElementById('header');
         let lastScroll = 0;
+        
         window.addEventListener('scroll', () => {
-            const header = document.querySelector('header');
             const currentScroll = window.pageYOffset;
             
             if (currentScroll > 100) {
-                header.style.background = 'rgba(250, 250, 250, 0.95)';
-                header.style.boxShadow = '0 2px 20px rgba(0,0,0,0.1)';
+                header.classList.add('scrolled');
             } else {
-                header.style.background = 'rgba(250, 250, 250, 0.8)';
-                header.style.boxShadow = 'none';
+                header.classList.remove('scrolled');
             }
             
             lastScroll = currentScroll;
         });
         
-        // Animated counter
+        // ============================================================================
+        // ANIMATED COUNTER
+        // ============================================================================
         function animateCounter(element, target, duration = 2000) {
             let start = 0;
             const increment = target / (duration / 16);
@@ -810,35 +1149,37 @@
             }, 16);
         }
         
-        // Intersection Observer for animations
+        // ============================================================================
+        // INTERSECTION OBSERVER
+        // ============================================================================
         const observerOptions = {
-            threshold: 0.2,
-            rootMargin: '0px 0px -100px 0px'
+            threshold: 0.15,
+            rootMargin: '0px 0px -50px 0px'
         };
         
         const observer = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
+            entries.forEach((entry, index) => {
                 if (entry.isIntersecting) {
-                    entry.target.classList.add('visible');
-                    
-                    // Animate counters when visible
-                    const counter = entry.target.querySelector('[data-count]');
-                    if (counter && !counter.dataset.animated) {
-                        counter.dataset.animated = 'true';
-                        animateCounter(counter, parseInt(counter.dataset.count));
-                    }
+                    setTimeout(() => {
+                        entry.target.classList.add('visible');
+                        
+                        const counter = entry.target.querySelector('[data-count]');
+                        if (counter && !counter.dataset.animated) {
+                            counter.dataset.animated = 'true';
+                            animateCounter(counter, parseInt(counter.dataset.count));
+                        }
+                    }, index * 100);
                     
                     observer.unobserve(entry.target);
                 }
             });
         }, observerOptions);
         
-        // Observe all cards
-        document.querySelectorAll('.card').forEach(card => {
-            observer.observe(card);
+        document.querySelectorAll('.card, .section-header, .timeline-item').forEach(el => {
+            observer.observe(el);
         });
         
-        // Hero stat counter (trigger immediately)
+        // Hero counter
         setTimeout(() => {
             const heroStat = document.querySelector('.hero-stat-number');
             animateCounter(heroStat, 86, 2500);
@@ -847,24 +1188,25 @@
         // ============================================================================
         // MAP (Leaflet.js)
         // ============================================================================
-        
         const map = L.map('map', {
             center: [-7.8, 110.4],
             zoom: 10,
-            scrollWheelZoom: false
+            scrollWheelZoom: false,
+            zoomControl: true
         });
         
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
-            attribution: '© OpenStreetMap contributors © CARTO'
+        // Dark theme tiles
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+            attribution: '© OpenStreetMap © CARTO',
+            maxZoom: 19
         }).addTo(map);
         
-        // Data lokasi (koordinat approximate)
         const locations = [
-            { name: 'Kulon Progo', count: 41, lat: -7.82, lng: 110.16, color: '#E74C3C' },
-            { name: 'Sleman', count: 25, lat: -7.70, lng: 110.35, color: '#F39C12' },
-            { name: 'Gunungkidul', count: 22, lat: -7.95, lng: 110.70, color: '#F39C12' },
-            { name: 'Bantul', count: 13, lat: -7.95, lng: 110.35, color: '#95A5A6' },
-            { name: 'Kota Yogyakarta', count: 11, lat: -7.80, lng: 110.37, color: '#95A5A6' }
+            { name: 'Kulon Progo', count: 41, lat: -7.82, lng: 110.16, color: '#FF6B6B' },
+            { name: 'Sleman', count: 25, lat: -7.70, lng: 110.35, color: '#FFA500' },
+            { name: 'Gunungkidul', count: 22, lat: -7.95, lng: 110.70, color: '#FFA500' },
+            { name: 'Bantul', count: 13, lat: -7.95, lng: 110.35, color: '#A855F7' },
+            { name: 'Kota Yogyakarta', count: 11, lat: -7.80, lng: 110.37, color: '#3B82F6' }
         ];
         
         locations.forEach(loc => {
@@ -873,19 +1215,35 @@
             L.circle([loc.lat, loc.lng], {
                 color: loc.color,
                 fillColor: loc.color,
-                fillOpacity: 0.5,
-                radius: radius
+                fillOpacity: 0.4,
+                radius: radius,
+                weight: 2
             })
-            .bindPopup(`<strong>${loc.name}</strong><br>${loc.count} kejadian (${(loc.count/112*100).toFixed(1)}%)`)
+            .bindPopup(`
+                <div style="background: #0A0E1A; color: white; padding: 12px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1);">
+                    <strong style="font-size: 16px;">${loc.name}</strong><br>
+                    <span style="color: ${loc.color}; font-size: 24px; font-weight: 900;">${loc.count}</span> 
+                    <span style="color: #94A3B8;">kejadian (${(loc.count/112*100).toFixed(1)}%)</span>
+                </div>
+            `)
             .addTo(map);
         });
         
         // ============================================================================
-        // CHARTS (Chart.js)
+        // CHARTS (Chart.js) with GRADIENTS
         // ============================================================================
         
         // Month Chart
         const monthCtx = document.getElementById('monthChart').getContext('2d');
+        
+        const gradientRed = monthCtx.createLinearGradient(0, 0, 0, 400);
+        gradientRed.addColorStop(0, 'rgba(255, 107, 107, 0.8)');
+        gradientRed.addColorStop(1, 'rgba(255, 107, 107, 0.2)');
+        
+        const gradientGray = monthCtx.createLinearGradient(0, 0, 0, 400);
+        gradientGray.addColorStop(0, 'rgba(148, 163, 184, 0.3)');
+        gradientGray.addColorStop(1, 'rgba(148, 163, 184, 0.1)');
+        
         const monthData = {
             labels: ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'],
             datasets: [{
@@ -893,12 +1251,17 @@
                 data: [14, 29, 17, 9, 2, 1, 1, 1, 2, 8, 19, 9],
                 backgroundColor: function(context) {
                     const index = context.dataIndex;
-                    const musimHujan = [0, 1, 2, 9, 10, 11]; // Jan, Feb, Mar, Okt, Nov, Des
-                    return musimHujan.includes(index) ? '#E74C3C' : '#D9C7A8';
+                    const musimHujan = [0, 1, 2, 9, 10, 11];
+                    return musimHujan.includes(index) ? gradientRed : gradientGray;
                 },
-                borderColor: '#1D1D1F',
+                borderColor: function(context) {
+                    const index = context.dataIndex;
+                    const musimHujan = [0, 1, 2, 9, 10, 11];
+                    return musimHujan.includes(index) ? '#FF6B6B' : '#94A3B8';
+                },
                 borderWidth: 2,
-                borderRadius: 8
+                borderRadius: 12,
+                borderSkipped: false
             }]
         };
         
@@ -909,33 +1272,37 @@
                 responsive: true,
                 maintainAspectRatio: false,
                 plugins: {
-                    legend: {
-                        display: false
-                    },
+                    legend: { display: false },
                     tooltip: {
-                        backgroundColor: 'rgba(29, 29, 31, 0.9)',
-                        padding: 12,
-                        titleFont: { size: 14, weight: 'bold' },
-                        bodyFont: { size: 13 },
-                        cornerRadius: 8
+                        backgroundColor: 'rgba(10, 14, 26, 0.95)',
+                        titleColor: '#FFFFFF',
+                        bodyColor: '#94A3B8',
+                        borderColor: 'rgba(255, 107, 107, 0.3)',
+                        borderWidth: 1,
+                        padding: 16,
+                        titleFont: { size: 16, weight: 'bold' },
+                        bodyFont: { size: 14 },
+                        cornerRadius: 12,
+                        displayColors: false
                     }
                 },
                 scales: {
                     y: {
                         beginAtZero: true,
                         grid: {
-                            color: 'rgba(0, 0, 0, 0.05)'
+                            color: 'rgba(255, 255, 255, 0.05)',
+                            drawBorder: false
                         },
                         ticks: {
-                            font: { size: 12 }
+                            color: '#94A3B8',
+                            font: { size: 13, weight: '600' }
                         }
                     },
                     x: {
-                        grid: {
-                            display: false
-                        },
+                        grid: { display: false },
                         ticks: {
-                            font: { size: 12, weight: '600' }
+                            color: '#FFFFFF',
+                            font: { size: 13, weight: '700' }
                         }
                     }
                 },
@@ -948,15 +1315,21 @@
         
         // Year Chart
         const yearCtx = document.getElementById('yearChart').getContext('2d');
+        
+        const gradientYear = yearCtx.createLinearGradient(0, 0, 0, 400);
+        gradientYear.addColorStop(0, 'rgba(168, 85, 247, 0.6)');
+        gradientYear.addColorStop(1, 'rgba(168, 85, 247, 0.1)');
+        
         const yearData = {
             labels: ['2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024', '2025', '2026*'],
             datasets: [{
                 label: 'Jumlah Kejadian per Tahun',
                 data: [12, 14, 12, 6, 7, 17, 4, 24, 5, 9, 2],
-                backgroundColor: '#D9C7A8',
-                borderColor: '#1D1D1F',
+                backgroundColor: gradientYear,
+                borderColor: '#A855F7',
                 borderWidth: 2,
-                borderRadius: 8
+                borderRadius: 12,
+                borderSkipped: false
             }]
         };
         
@@ -967,15 +1340,18 @@
                 responsive: true,
                 maintainAspectRatio: false,
                 plugins: {
-                    legend: {
-                        display: false
-                    },
+                    legend: { display: false },
                     tooltip: {
-                        backgroundColor: 'rgba(29, 29, 31, 0.9)',
-                        padding: 12,
-                        titleFont: { size: 14, weight: 'bold' },
-                        bodyFont: { size: 13 },
-                        cornerRadius: 8,
+                        backgroundColor: 'rgba(10, 14, 26, 0.95)',
+                        titleColor: '#FFFFFF',
+                        bodyColor: '#94A3B8',
+                        borderColor: 'rgba(168, 85, 247, 0.3)',
+                        borderWidth: 1,
+                        padding: 16,
+                        titleFont: { size: 16, weight: 'bold' },
+                        bodyFont: { size: 14 },
+                        cornerRadius: 12,
+                        displayColors: false,
                         callbacks: {
                             afterBody: function(context) {
                                 if (context[0].label === '2026*') {
@@ -990,18 +1366,19 @@
                         beginAtZero: true,
                         max: 26,
                         grid: {
-                            color: 'rgba(0, 0, 0, 0.05)'
+                            color: 'rgba(255, 255, 255, 0.05)',
+                            drawBorder: false
                         },
                         ticks: {
-                            font: { size: 12 }
+                            color: '#94A3B8',
+                            font: { size: 13, weight: '600' }
                         }
                     },
                     x: {
-                        grid: {
-                            display: false
-                        },
+                        grid: { display: false },
                         ticks: {
-                            font: { size: 11, weight: '600' }
+                            color: '#FFFFFF',
+                            font: { size: 12, weight: '700' }
                         }
                     }
                 },
@@ -1013,7 +1390,9 @@
             }
         });
         
-        // Smooth scroll for navigation
+        // ============================================================================
+        // SMOOTH SCROLL
+        // ============================================================================
         document.querySelectorAll('a[href^="#"]').forEach(anchor => {
             anchor.addEventListener('click', function (e) {
                 e.preventDefault();
@@ -1027,10 +1406,9 @@
             });
         });
         
-        console.log('🚀 Jejak di Lereng - Interactive Web loaded successfully!');
-        console.log('📊 Data: 112 kejadian tercatat (Feb 2016 - Feb 2026)');
-        console.log('🗺️  Peta interaktif siap');
-        console.log('📈 Charts dengan animasi smooth');
+        console.log('%c🚀 Jejak di Lereng', 'font-size: 24px; font-weight: bold; background: linear-gradient(135deg, #FF6B6B, #A855F7); -webkit-background-clip: text; color: transparent;');
+        console.log('%c📊 112 kejadian tercatat (Feb 2016 - Feb 2026)', 'font-size: 14px; color: #94A3B8;');
+        console.log('%c✨ Interactive visualization loaded', 'font-size: 12px; color: #4ADE80;');
     </script>
 </body>
 </html>
