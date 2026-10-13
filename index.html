@@ -1,0 +1,1036 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jejak di Lereng - Membaca Pola Longsor di DIY</title>
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    
+    <!-- Leaflet for map -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        :root {
+            --color-bg: #FAFAFA;
+            --color-text: #1D1D1F;
+            --color-text-secondary: #6E6E73;
+            --color-accent: #E74C3C;
+            --color-accent-light: #F39C12;
+            --color-surface: #FFFFFF;
+            --color-border: rgba(0,0,0,0.1);
+            --color-success: #27AE60;
+            --spacing-xs: 8px;
+            --spacing-sm: 16px;
+            --spacing-md: 32px;
+            --spacing-lg: 64px;
+            --spacing-xl: 128px;
+            --radius: 16px;
+            --transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: var(--color-bg);
+            color: var(--color-text);
+            line-height: 1.6;
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
+        
+        /* Smooth scroll */
+        html {
+            scroll-behavior: smooth;
+        }
+        
+        /* Header */
+        header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: rgba(250, 250, 250, 0.8);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--color-border);
+            z-index: 1000;
+            transition: var(--transition);
+        }
+        
+        nav {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: var(--spacing-sm) var(--spacing-md);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--color-text);
+            text-decoration: none;
+        }
+        
+        .nav-links {
+            display: flex;
+            gap: var(--spacing-md);
+            list-style: none;
+        }
+        
+        .nav-links a {
+            color: var(--color-text-secondary);
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            transition: var(--transition);
+        }
+        
+        .nav-links a:hover {
+            color: var(--color-accent);
+        }
+        
+        /* Hero Section */
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: var(--spacing-xl) var(--spacing-md) var(--spacing-lg);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -30%;
+            width: 800px;
+            height: 800px;
+            background: radial-gradient(circle, rgba(231, 76, 60, 0.1) 0%, transparent 70%);
+            border-radius: 50%;
+            animation: float 20s ease-in-out infinite;
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            50% { transform: translate(-30px, -30px) scale(1.1); }
+        }
+        
+        .hero-content {
+            max-width: 900px;
+            position: relative;
+            z-index: 1;
+            opacity: 0;
+            animation: fadeInUp 1s ease forwards 0.3s;
+        }
+        
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .hero-subtitle {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--color-accent);
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            margin-bottom: var(--spacing-sm);
+        }
+        
+        .hero-title {
+            font-size: clamp(40px, 8vw, 80px);
+            font-weight: 900;
+            line-height: 1.1;
+            margin-bottom: var(--spacing-sm);
+            background: linear-gradient(135deg, var(--color-text) 0%, var(--color-accent) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .hero-description {
+            font-size: clamp(16px, 2vw, 20px);
+            color: var(--color-text-secondary);
+            margin-bottom: var(--spacing-md);
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        
+        .hero-stat {
+            display: inline-block;
+            background: var(--color-surface);
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius);
+            padding: var(--spacing-md) var(--spacing-lg);
+            margin-top: var(--spacing-md);
+            box-shadow: 0 10px 40px rgba(0,0,0,0.05);
+        }
+        
+        .hero-stat-number {
+            font-size: 72px;
+            font-weight: 900;
+            color: var(--color-accent);
+            line-height: 1;
+            display: block;
+        }
+        
+        .hero-stat-label {
+            font-size: 16px;
+            color: var(--color-text-secondary);
+            margin-top: var(--spacing-xs);
+        }
+        
+        .scroll-indicator {
+            position: absolute;
+            bottom: var(--spacing-lg);
+            left: 50%;
+            transform: translateX(-50%);
+            width: 24px;
+            height: 40px;
+            border: 2px solid var(--color-text-secondary);
+            border-radius: 12px;
+            opacity: 0.5;
+            animation: fadeInUp 1s ease forwards 1s;
+        }
+        
+        .scroll-indicator::before {
+            content: '';
+            position: absolute;
+            top: 8px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 4px;
+            height: 8px;
+            background: var(--color-text-secondary);
+            border-radius: 2px;
+            animation: scroll 2s ease infinite;
+        }
+        
+        @keyframes scroll {
+            0% { transform: translate(-50%, 0); opacity: 1; }
+            100% { transform: translate(-50%, 16px); opacity: 0; }
+        }
+        
+        /* Section */
+        section {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: var(--spacing-xl) var(--spacing-md);
+        }
+        
+        .section-header {
+            text-align: center;
+            margin-bottom: var(--spacing-lg);
+        }
+        
+        .section-title {
+            font-size: clamp(32px, 5vw, 48px);
+            font-weight: 800;
+            margin-bottom: var(--spacing-sm);
+        }
+        
+        .section-subtitle {
+            font-size: 18px;
+            color: var(--color-text-secondary);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        
+        /* Card */
+        .card {
+            background: var(--color-surface);
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius);
+            padding: var(--spacing-md);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.04);
+            transition: var(--transition);
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        
+        .card.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        .card:hover {
+            box-shadow: 0 12px 40px rgba(0,0,0,0.08);
+            transform: translateY(-4px);
+        }
+        
+        /* Glass Card */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: var(--radius);
+            padding: var(--spacing-md);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+        }
+        
+        /* Grid */
+        .grid {
+            display: grid;
+            gap: var(--spacing-md);
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        }
+        
+        .grid-2 {
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+        }
+        
+        /* Map Section */
+        #map {
+            height: 500px;
+            border-radius: var(--radius);
+            overflow: hidden;
+            box-shadow: 0 12px 40px rgba(0,0,0,0.1);
+        }
+        
+        /* Chart */
+        .chart-container {
+            position: relative;
+            height: 400px;
+            background: var(--color-surface);
+            border-radius: var(--radius);
+            padding: var(--spacing-md);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.04);
+        }
+        
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: var(--spacing-md);
+            margin-top: var(--spacing-lg);
+        }
+        
+        .stat-card {
+            text-align: center;
+            padding: var(--spacing-md);
+            background: var(--color-surface);
+            border-radius: var(--radius);
+            border: 1px solid var(--color-border);
+            transition: var(--transition);
+        }
+        
+        .stat-card:hover {
+            border-color: var(--color-accent);
+            transform: translateY(-4px);
+            box-shadow: 0 12px 40px rgba(231, 76, 60, 0.1);
+        }
+        
+        .stat-number {
+            font-size: 48px;
+            font-weight: 900;
+            color: var(--color-accent);
+            line-height: 1;
+            margin-bottom: var(--spacing-xs);
+        }
+        
+        .stat-label {
+            font-size: 14px;
+            color: var(--color-text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .stat-description {
+            font-size: 12px;
+            color: var(--color-text-secondary);
+            margin-top: var(--spacing-xs);
+        }
+        
+        /* Timeline */
+        .timeline {
+            position: relative;
+            padding: var(--spacing-md) 0;
+        }
+        
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 50%;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: var(--color-border);
+        }
+        
+        .timeline-item {
+            position: relative;
+            margin-bottom: var(--spacing-lg);
+            display: flex;
+            align-items: center;
+        }
+        
+        .timeline-item:nth-child(odd) {
+            flex-direction: row-reverse;
+            text-align: right;
+        }
+        
+        .timeline-content {
+            width: 45%;
+            padding: var(--spacing-md);
+            background: var(--color-surface);
+            border-radius: var(--radius);
+            border: 1px solid var(--color-border);
+        }
+        
+        .timeline-dot {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 16px;
+            height: 16px;
+            background: var(--color-accent);
+            border: 4px solid var(--color-bg);
+            border-radius: 50%;
+            z-index: 1;
+        }
+        
+        /* Icon Grid */
+        .icon-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: var(--spacing-md);
+            margin-top: var(--spacing-lg);
+        }
+        
+        .icon-card {
+            text-align: center;
+            padding: var(--spacing-md);
+            background: var(--color-surface);
+            border-radius: var(--radius);
+            border: 1px solid var(--color-border);
+            transition: var(--transition);
+        }
+        
+        .icon-card:hover {
+            border-color: var(--color-accent);
+            transform: scale(1.05);
+            box-shadow: 0 12px 40px rgba(0,0,0,0.1);
+        }
+        
+        .icon {
+            font-size: 48px;
+            margin-bottom: var(--spacing-sm);
+        }
+        
+        .icon-title {
+            font-weight: 600;
+            margin-bottom: var(--spacing-xs);
+        }
+        
+        .icon-description {
+            font-size: 12px;
+            color: var(--color-text-secondary);
+        }
+        
+        /* Alert Box */
+        .alert {
+            background: linear-gradient(135deg, var(--color-accent) 0%, var(--color-accent-light) 100%);
+            color: white;
+            padding: var(--spacing-md) var(--spacing-lg);
+            border-radius: var(--radius);
+            text-align: center;
+            font-weight: 600;
+            margin: var(--spacing-lg) 0;
+            box-shadow: 0 8px 32px rgba(231, 76, 60, 0.3);
+        }
+        
+        /* Footer */
+        footer {
+            background: var(--color-text);
+            color: rgba(255,255,255,0.6);
+            padding: var(--spacing-lg) var(--spacing-md);
+            margin-top: var(--spacing-xl);
+        }
+        
+        .footer-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            text-align: center;
+        }
+        
+        .footer-title {
+            color: white;
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: var(--spacing-md);
+        }
+        
+        .footer-text {
+            font-size: 12px;
+            line-height: 1.8;
+            max-width: 800px;
+            margin: 0 auto var(--spacing-md);
+        }
+        
+        .footer-links {
+            display: flex;
+            gap: var(--spacing-md);
+            justify-content: center;
+            flex-wrap: wrap;
+            font-size: 12px;
+        }
+        
+        .footer-links a {
+            color: rgba(255,255,255,0.6);
+            text-decoration: none;
+            transition: var(--transition);
+        }
+        
+        .footer-links a:hover {
+            color: white;
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .nav-links {
+                display: none;
+            }
+            
+            .grid-2 {
+                grid-template-columns: 1fr;
+            }
+            
+            .timeline::before {
+                left: 20px;
+            }
+            
+            .timeline-item {
+                flex-direction: row !important;
+                text-align: left !important;
+                padding-left: 50px;
+            }
+            
+            .timeline-content {
+                width: 100%;
+            }
+            
+            .timeline-dot {
+                left: 20px;
+            }
+        }
+        
+        /* Loading Animation */
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        .loading {
+            animation: pulse 2s ease infinite;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header>
+        <nav>
+            <a href="#" class="logo">Jejak di Lereng</a>
+            <ul class="nav-links">
+                <li><a href="#overview">Overview</a></li>
+                <li><a href="#lokasi">Lokasi</a></li>
+                <li><a href="#waktu">Waktu</a></li>
+                <li><a href="#dampak">Dampak</a></li>
+                <li><a href="#mitigasi">Mitigasi</a></li>
+            </ul>
+        </nav>
+    </header>
+    
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-content">
+            <div class="hero-subtitle">Data Tanah Longsor DIY 2016–2026</div>
+            <h1 class="hero-title">Jejak di Lereng</h1>
+            <p class="hero-description">Membaca pola tanah longsor di Daerah Istimewa Yogyakarta melalui 112 kejadian tercatat dalam dekade terakhir.</p>
+            
+            <div class="hero-stat">
+                <span class="hero-stat-number" data-count="86">0</span>
+                <div class="hero-stat-label">Persen kejadian terjadi Oktober–Maret</div>
+            </div>
+        </div>
+        <div class="scroll-indicator"></div>
+    </section>
+    
+    <!-- Overview Section -->
+    <section id="overview">
+        <div class="section-header">
+            <h2 class="section-title">112 Kejadian Tercatat</h2>
+            <p class="section-subtitle">Periode Februari 2016 hingga Februari 2026 di lima kabupaten/kota DIY</p>
+        </div>
+        
+        <div class="stats-grid">
+            <div class="stat-card card">
+                <div class="stat-number" data-count="20">0</div>
+                <div class="stat-label">Meninggal</div>
+                <div class="stat-description">Semua tercatat 2016-2019</div>
+            </div>
+            <div class="stat-card card">
+                <div class="stat-number" data-count="25">0</div>
+                <div class="stat-label">Luka/Sakit</div>
+            </div>
+            <div class="stat-card card">
+                <div class="stat-number" data-count="11141">0</div>
+                <div class="stat-label">Mengungsi</div>
+            </div>
+            <div class="stat-card card">
+                <div class="stat-number" data-count="268">0</div>
+                <div class="stat-label">Rumah Rusak</div>
+                <div class="stat-description">Berat + sedang + ringan</div>
+            </div>
+        </div>
+        
+        <div class="alert" style="margin-top: 3rem;">
+            ⚠️ Sejak 2020 hingga Februari 2026: 68 catatan longsor, 0 korban jiwa tercatat
+        </div>
+    </section>
+    
+    <!-- Lokasi Section -->
+    <section id="lokasi">
+        <div class="section-header">
+            <h2 class="section-title">Di Mana Longsor Tercatat?</h2>
+            <p class="section-subtitle">Kulon Progo mencatat kejadian terbanyak dengan 36,6% dari total</p>
+        </div>
+        
+        <div id="map"></div>
+        
+        <div class="stats-grid" style="margin-top: 2rem;">
+            <div class="stat-card card">
+                <div class="stat-number">41</div>
+                <div class="stat-label">Kulon Progo</div>
+                <div class="stat-description">36,6%</div>
+            </div>
+            <div class="stat-card card">
+                <div class="stat-number">25</div>
+                <div class="stat-label">Sleman</div>
+                <div class="stat-description">22,3%</div>
+            </div>
+            <div class="stat-card card">
+                <div class="stat-number">22</div>
+                <div class="stat-label">Gunungkidul</div>
+                <div class="stat-description">19,6%</div>
+            </div>
+            <div class="stat-card card">
+                <div class="stat-number">13</div>
+                <div class="stat-label">Bantul</div>
+                <div class="stat-description">11,6%</div>
+            </div>
+            <div class="stat-card card">
+                <div class="stat-number">11</div>
+                <div class="stat-label">Kota Yogyakarta</div>
+                <div class="stat-description">9,8%</div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Waktu Section -->
+    <section id="waktu">
+        <div class="section-header">
+            <h2 class="section-title">Kapan Longsor Terjadi?</h2>
+            <p class="section-subtitle">Pola kejadian selaras dengan musim hujan di DIY</p>
+        </div>
+        
+        <div class="chart-container card">
+            <canvas id="monthChart"></canvas>
+        </div>
+        
+        <div class="alert" style="margin-top: 2rem;">
+            📊 96 dari 112 catatan (85,7%) terjadi pada Oktober–Maret
+        </div>
+        
+        <div class="chart-container card" style="margin-top: 2rem;">
+            <canvas id="yearChart"></canvas>
+        </div>
+    </section>
+    
+    <!-- Dampak Section -->
+    <section id="dampak">
+        <div class="section-header">
+            <h2 class="section-title">Dampak yang Tercatat</h2>
+            <p class="section-subtitle">Perubahan pola korban jiwa sejak 2020</p>
+        </div>
+        
+        <div class="timeline">
+            <div class="timeline-item">
+                <div class="timeline-content card">
+                    <h3>2016-2019</h3>
+                    <p><strong>20 jiwa meninggal</strong> tercatat dalam periode ini. Kejadian terakhir dengan korban jiwa: 1 September 2019 di Sleman.</p>
+                </div>
+                <div class="timeline-dot"></div>
+            </div>
+            
+            <div class="timeline-item">
+                <div class="timeline-content card">
+                    <h3>2020-2026</h3>
+                    <p><strong>68 catatan longsor, 0 korban jiwa.</strong> Meski jumlah kejadian terus ada, tidak ada korban jiwa tercatat sejak 2020.</p>
+                </div>
+                <div class="timeline-dot"></div>
+            </div>
+            
+            <div class="timeline-item">
+                <div class="timeline-content card">
+                    <h3>Februari 2023</h3>
+                    <p><strong>17 kejadian dalam satu bulan</strong> — episode terbanyak dalam satu periode bulanan.</p>
+                </div>
+                <div class="timeline-dot"></div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Mitigasi Section -->
+    <section id="mitigasi">
+        <div class="section-header">
+            <h2 class="section-title">Kesiapsiagaan Bersama</h2>
+            <p class="section-subtitle">Langkah mitigasi yang dianjurkan</p>
+        </div>
+        
+        <div class="icon-grid">
+            <div class="icon-card card">
+                <div class="icon">☁️</div>
+                <div class="icon-title">Pantau Cuaca</div>
+                <div class="icon-description">Respons cepat terhadap peringatan BMKG</div>
+            </div>
+            
+            <div class="icon-card card">
+                <div class="icon">📢</div>
+                <div class="icon-title">Peringatan Dini</div>
+                <div class="icon-description">Pasang dan rawat alat deteksi (BPBD + warga)</div>
+            </div>
+            
+            <div class="icon-card card">
+                <div class="icon">🏘️</div>
+                <div class="icon-title">Desa Tangguh</div>
+                <div class="icon-description">Bentuk Destana sesuai Peraturan BNPB 2025</div>
+            </div>
+            
+            <div class="icon-card card">
+                <div class="icon">🌳</div>
+                <div class="icon-title">Edukasi & Hijau</div>
+                <div class="icon-description">Sosialisasi warga lereng dan penghijauan</div>
+            </div>
+            
+            <div class="icon-card card">
+                <div class="icon">🎓</div>
+                <div class="icon-title">Dukungan Riset</div>
+                <div class="icon-description">Kampus dan komunitas turut membangun kapasitas</div>
+            </div>
+        </div>
+        
+        <div class="glass-card" style="margin-top: 3rem; text-align: center;">
+            <h3 style="margin-bottom: 1rem;">Peran Vegetasi</h3>
+            <p style="color: var(--color-text-secondary);">Penelitian menunjukkan vegetasi membantu mengurangi risiko longsor dangkal melalui dua cara: <strong>akar menguatkan tanah secara mekanis</strong>, dan <strong>tanaman menyerap air dari tanah</strong>. Namun, pemilihan jenis dan lokasi tanam harus tepat agar tidak membebani lereng.</p>
+        </div>
+    </section>
+    
+    <!-- Footer -->
+    <footer>
+        <div class="footer-content">
+            <div class="footer-title">Sumber Data & Referensi</div>
+            <div class="footer-text">
+                <strong>Data:</strong> BNPB, Data Informasi Bencana Indonesia (DIBI), dibi.bnpb.go.id. Kejadian tanah longsor dan gerakan tanah di DIY, Februari 2016–Februari 2026 (diunduh 13 Oktober 2026). Angka menunjukkan kejadian tercatat dalam DIBI. Data diolah penulis (duplikat dibersihkan: 117→112 catatan).<br><br>
+                <strong>Peta:</strong> geoBoundaries (CC BY 4.0) • <strong>Konteks:</strong> BMKG Stasiun Klimatologi DIY, BPBD DIY • <strong>Penelitian:</strong> Kim dkk. 2017, UGM bioengineering, Switala dkk. 2015<br><br>
+                <strong>Catatan:</strong> Data DIBI jauh lebih kecil dari catatan BPBD (2024: DIBI 5 vs BPBD 377). Semua angka di halaman ini = tercatat di DIBI.
+            </div>
+            <div class="footer-links">
+                <a href="https://dibi.bnpb.go.id" target="_blank">DIBI BNPB</a>
+                <a href="https://bmkg.go.id" target="_blank">BMKG</a>
+                <a href="https://bpbd.jogjaprov.go.id" target="_blank">BPBD DIY</a>
+                <a href="https://geoboundaries.org" target="_blank">geoBoundaries</a>
+            </div>
+            <div style="margin-top: 2rem; opacity: 0.4; font-size: 11px;">
+                © 2026 Jejak di Lereng. Data visualization for educational purposes.
+            </div>
+        </div>
+    </footer>
+    
+    <script>
+        // ============================================================================
+        // ANIMATIONS & INTERACTIONS
+        // ============================================================================
+        
+        // Scroll header effect
+        let lastScroll = 0;
+        window.addEventListener('scroll', () => {
+            const header = document.querySelector('header');
+            const currentScroll = window.pageYOffset;
+            
+            if (currentScroll > 100) {
+                header.style.background = 'rgba(250, 250, 250, 0.95)';
+                header.style.boxShadow = '0 2px 20px rgba(0,0,0,0.1)';
+            } else {
+                header.style.background = 'rgba(250, 250, 250, 0.8)';
+                header.style.boxShadow = 'none';
+            }
+            
+            lastScroll = currentScroll;
+        });
+        
+        // Animated counter
+        function animateCounter(element, target, duration = 2000) {
+            let start = 0;
+            const increment = target / (duration / 16);
+            
+            const timer = setInterval(() => {
+                start += increment;
+                if (start >= target) {
+                    element.textContent = target.toLocaleString('id-ID');
+                    clearInterval(timer);
+                } else {
+                    element.textContent = Math.floor(start).toLocaleString('id-ID');
+                }
+            }, 16);
+        }
+        
+        // Intersection Observer for animations
+        const observerOptions = {
+            threshold: 0.2,
+            rootMargin: '0px 0px -100px 0px'
+        };
+        
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                    
+                    // Animate counters when visible
+                    const counter = entry.target.querySelector('[data-count]');
+                    if (counter && !counter.dataset.animated) {
+                        counter.dataset.animated = 'true';
+                        animateCounter(counter, parseInt(counter.dataset.count));
+                    }
+                    
+                    observer.unobserve(entry.target);
+                }
+            });
+        }, observerOptions);
+        
+        // Observe all cards
+        document.querySelectorAll('.card').forEach(card => {
+            observer.observe(card);
+        });
+        
+        // Hero stat counter (trigger immediately)
+        setTimeout(() => {
+            const heroStat = document.querySelector('.hero-stat-number');
+            animateCounter(heroStat, 86, 2500);
+        }, 1500);
+        
+        // ============================================================================
+        // MAP (Leaflet.js)
+        // ============================================================================
+        
+        const map = L.map('map', {
+            center: [-7.8, 110.4],
+            zoom: 10,
+            scrollWheelZoom: false
+        });
+        
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+            attribution: '© OpenStreetMap contributors © CARTO'
+        }).addTo(map);
+        
+        // Data lokasi (koordinat approximate)
+        const locations = [
+            { name: 'Kulon Progo', count: 41, lat: -7.82, lng: 110.16, color: '#E74C3C' },
+            { name: 'Sleman', count: 25, lat: -7.70, lng: 110.35, color: '#F39C12' },
+            { name: 'Gunungkidul', count: 22, lat: -7.95, lng: 110.70, color: '#F39C12' },
+            { name: 'Bantul', count: 13, lat: -7.95, lng: 110.35, color: '#95A5A6' },
+            { name: 'Kota Yogyakarta', count: 11, lat: -7.80, lng: 110.37, color: '#95A5A6' }
+        ];
+        
+        locations.forEach(loc => {
+            const radius = Math.sqrt(loc.count) * 3000;
+            
+            L.circle([loc.lat, loc.lng], {
+                color: loc.color,
+                fillColor: loc.color,
+                fillOpacity: 0.5,
+                radius: radius
+            })
+            .bindPopup(`<strong>${loc.name}</strong><br>${loc.count} kejadian (${(loc.count/112*100).toFixed(1)}%)`)
+            .addTo(map);
+        });
+        
+        // ============================================================================
+        // CHARTS (Chart.js)
+        // ============================================================================
+        
+        // Month Chart
+        const monthCtx = document.getElementById('monthChart').getContext('2d');
+        const monthData = {
+            labels: ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'],
+            datasets: [{
+                label: 'Jumlah Kejadian',
+                data: [14, 29, 17, 9, 2, 1, 1, 1, 2, 8, 19, 9],
+                backgroundColor: function(context) {
+                    const index = context.dataIndex;
+                    const musimHujan = [0, 1, 2, 9, 10, 11]; // Jan, Feb, Mar, Okt, Nov, Des
+                    return musimHujan.includes(index) ? '#E74C3C' : '#D9C7A8';
+                },
+                borderColor: '#1D1D1F',
+                borderWidth: 2,
+                borderRadius: 8
+            }]
+        };
+        
+        new Chart(monthCtx, {
+            type: 'bar',
+            data: monthData,
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(29, 29, 31, 0.9)',
+                        padding: 12,
+                        titleFont: { size: 14, weight: 'bold' },
+                        bodyFont: { size: 13 },
+                        cornerRadius: 8
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            color: 'rgba(0, 0, 0, 0.05)'
+                        },
+                        ticks: {
+                            font: { size: 12 }
+                        }
+                    },
+                    x: {
+                        grid: {
+                            display: false
+                        },
+                        ticks: {
+                            font: { size: 12, weight: '600' }
+                        }
+                    }
+                },
+                animation: {
+                    duration: 2000,
+                    easing: 'easeInOutQuart'
+                }
+            }
+        });
+        
+        // Year Chart
+        const yearCtx = document.getElementById('yearChart').getContext('2d');
+        const yearData = {
+            labels: ['2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024', '2025', '2026*'],
+            datasets: [{
+                label: 'Jumlah Kejadian per Tahun',
+                data: [12, 14, 12, 6, 7, 17, 4, 24, 5, 9, 2],
+                backgroundColor: '#D9C7A8',
+                borderColor: '#1D1D1F',
+                borderWidth: 2,
+                borderRadius: 8
+            }]
+        };
+        
+        new Chart(yearCtx, {
+            type: 'bar',
+            data: yearData,
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(29, 29, 31, 0.9)',
+                        padding: 12,
+                        titleFont: { size: 14, weight: 'bold' },
+                        bodyFont: { size: 13 },
+                        cornerRadius: 8,
+                        callbacks: {
+                            afterBody: function(context) {
+                                if (context[0].label === '2026*') {
+                                    return '\n* Hanya Jan-Feb 2026';
+                                }
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 26,
+                        grid: {
+                            color: 'rgba(0, 0, 0, 0.05)'
+                        },
+                        ticks: {
+                            font: { size: 12 }
+                        }
+                    },
+                    x: {
+                        grid: {
+                            display: false
+                        },
+                        ticks: {
+                            font: { size: 11, weight: '600' }
+                        }
+                    }
+                },
+                animation: {
+                    duration: 2000,
+                    easing: 'easeInOutQuart',
+                    delay: 500
+                }
+            }
+        });
+        
+        // Smooth scroll for navigation
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+        
+        console.log('🚀 Jejak di Lereng - Interactive Web loaded successfully!');
+        console.log('📊 Data: 112 kejadian tercatat (Feb 2016 - Feb 2026)');
+        console.log('🗺️  Peta interaktif siap');
+        console.log('📈 Charts dengan animasi smooth');
+    </script>
+</body>
+</html>
