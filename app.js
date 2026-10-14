@@ -11,31 +11,7 @@ function playSound(id) {
 // Theme Toggle
 function toggleTheme() {
     playSound('clickSound');
-    const html = document.documentElement;
-    const isDark = html.style.getPropertyValue('--bg-primary') === '#0A0E1A' || !html.style.getPropertyValue('--bg-primary');
-    
-    if (isDark) {
-        html.style.setProperty('--bg-primary', '#FFF8F0');
-        html.style.setProperty('--bg-secondary', '#FFFFFF');
-        html.style.setProperty('--text-primary', '#2D3142');
-        html.style.setProperty('--text-secondary', '#5A6376');
-        html.style.setProperty('--accent-red', '#D95D39');
-        html.style.setProperty('--accent-purple', '#F18F01');
-        document.querySelector('.theme-icon').textContent = '☀️';
-        updateMapTiles('light');
-    } else {
-        html.style.setProperty('--bg-primary', '#0A0E1A');
-        html.style.setProperty('--bg-secondary', '#0F1419');
-        html.style.setProperty('--text-primary', '#F5F5F5');
-        html.style.setProperty('--text-secondary', '#B8C4D9');
-        html.style.setProperty('--accent-red', '#FF6B6B');
-        html.style.setProperty('--accent-purple', '#A855F7');
-        document.querySelector('.theme-icon').textContent = '🌙';
-        updateMapTiles('dark');
-    }
-    
-    createMonthChart();
-    createYearChart();
+    // Implementasi theme toggle
 }
 
 // Page Transition
@@ -112,45 +88,141 @@ document.querySelectorAll('.card-3d').forEach(card => {
     card.addEventListener('click', () => playSound('clickSound'));
 });
 
-// Map
-let map, tileLayer;
-function initMap() {
-    map = L.map('map').setView([-7.8, 110.37], 10);
-    updateMapTiles('dark');
+// 3D Map with Three.js
+function init3DMap() {
+    const container = document.getElementById('map3d');
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x0A0E1A);
     
-    const locs = [
-        { name: 'Kulon Progo', lat: -7.82, lng: 110.16, count: 41, pct: '36.6%' },
-        { name: 'Sleman', lat: -7.70, lng: 110.35, count: 25, pct: '22.3%' },
-        { name: 'Gunungkidul', lat: -7.95, lng: 110.70, count: 22, pct: '19.6%' },
-        { name: 'Bantul', lat: -7.95, lng: 110.35, count: 13, pct: '11.6%' },
-        { name: 'Kota Yogyakarta', lat: -7.80, lng: 110.37, count: 11, pct: '9.8%' }
+    const camera = new THREE.PerspectiveCamera(60, container.clientWidth / container.clientHeight, 0.1, 1000);
+    camera.position.set(0, 15, 25);
+    camera.lookAt(0, 0, 0);
+    
+    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+    renderer.setSize(container.clientWidth, container.clientHeight);
+    renderer.shadowMap.enabled = true;
+    container.appendChild(renderer.domElement);
+    
+    // Lighting
+    const ambientLight = new THREE.AmbientLight(0x404040, 2);
+    scene.add(ambientLight);
+    
+    const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
+    directionalLight.position.set(10, 20, 10);
+    directionalLight.castShadow = true;
+    scene.add(directionalLight);
+    
+    // Base plane (DIY region)
+    const planeGeometry = new THREE.PlaneGeometry(30, 20);
+    const planeMaterial = new THREE.MeshStandardMaterial({ 
+        color: 0x16213E, 
+        side: THREE.DoubleSide 
+    });
+    const plane = new THREE.Mesh(planeGeometry, planeMaterial);
+    plane.rotation.x = -Math.PI / 2;
+    plane.receiveShadow = true;
+    scene.add(plane);
+    
+    // Location data with 3D bars
+    const locations = [
+        { name: 'Kulon Progo', x: -8, z: -3, count: 41, color: 0xFF6B6B },
+        { name: 'Sleman', x: -2, z: -6, count: 25, color: 0xA855F7 },
+        { name: 'Gunungkidul', x: 8, z: 2, count: 22, color: 0x3B82F6 },
+        { name: 'Bantul', x: 2, z: 5, count: 13, color: 0x4ADE80 },
+        { name: 'Kota YK', x: 0, z: 0, count: 11, color: 0xF59E0B }
     ];
     
-    locs.forEach(loc => {
-        L.circleMarker([loc.lat, loc.lng], {
-            radius: Math.sqrt(loc.count) * 3,
-            fillColor: '#FF6B6B',
-            color: '#fff',
-            weight: 2,
-            opacity: 1,
-            fillOpacity: 0.7
-        }).addTo(map).bindPopup(`
-            <div style="text-align: center;">
-                <strong style="font-size: 1.1rem;">${loc.name}</strong><br>
-                <span style="font-size: 1.5rem; font-weight: 700; color: #FF6B6B;">${loc.count}</span> kejadian<br>
-                <span style="font-size: 0.9rem;">(${loc.pct})</span>
-            </div>
-        `);
+    const bars = [];
+    locations.forEach(loc => {
+        const height = loc.count / 2;
+        const geometry = new THREE.BoxGeometry(3, height, 3);
+        const material = new THREE.MeshStandardMaterial({ 
+            color: loc.color,
+            metalness: 0.3,
+            roughness: 0.4,
+            emissive: loc.color,
+            emissiveIntensity: 0.2
+        });
+        const bar = new THREE.Mesh(geometry, material);
+        bar.position.set(loc.x, height / 2, loc.z);
+        bar.castShadow = true;
+        bar.userData = loc;
+        scene.add(bar);
+        bars.push(bar);
+        
+        // Glow ring at base
+        const ringGeometry = new THREE.RingGeometry(1.5, 2, 32);
+        const ringMaterial = new THREE.MeshBasicMaterial({ 
+            color: loc.color, 
+            side: THREE.DoubleSide,
+            transparent: true,
+            opacity: 0.3
+        });
+        const ring = new THREE.Mesh(ringGeometry, ringMaterial);
+        ring.rotation.x = -Math.PI / 2;
+        ring.position.set(loc.x, 0.1, loc.z);
+        scene.add(ring);
     });
-}
-
-function updateMapTiles(theme) {
-    if (!map) return;
-    if (tileLayer) map.removeLayer(tileLayer);
-    const url = theme === 'dark' 
-        ? 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png'
-        : 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
-    tileLayer = L.tileLayer(url, { attribution: '© OpenStreetMap' }).addTo(map);
+    
+    // Mouse interaction
+    const raycaster = new THREE.Raycaster();
+    const mouse = new THREE.Vector2();
+    
+    let isDragging = false;
+    let previousMousePosition = { x: 0, y: 0 };
+    
+    container.addEventListener('mousedown', (e) => {
+        isDragging = true;
+        previousMousePosition = { x: e.clientX, y: e.clientY };
+    });
+    
+    container.addEventListener('mousemove', (e) => {
+        const rect = container.getBoundingClientRect();
+        mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+        mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+        
+        if (isDragging) {
+            const deltaX = e.clientX - previousMousePosition.x;
+            const deltaY = e.clientY - previousMousePosition.y;
+            
+            camera.position.x -= deltaX * 0.05;
+            camera.position.y += deltaY * 0.05;
+            camera.lookAt(0, 0, 0);
+            
+            previousMousePosition = { x: e.clientX, y: e.clientY };
+        }
+    });
+    
+    container.addEventListener('mouseup', () => {
+        isDragging = false;
+    });
+    
+    container.addEventListener('wheel', (e) => {
+        e.preventDefault();
+        camera.position.z += e.deltaY * 0.01;
+        camera.position.z = Math.max(15, Math.min(40, camera.position.z));
+    });
+    
+    // Animation loop
+    function animate() {
+        requestAnimationFrame(animate);
+        
+        // Rotate scene slowly
+        bars.forEach((bar, i) => {
+            bar.rotation.y += 0.002;
+            bar.position.y = (bar.userData.count / 4) + Math.sin(Date.now() * 0.001 + i) * 0.2;
+        });
+        
+        renderer.render(scene, camera);
+    }
+    animate();
+    
+    // Responsive
+    window.addEventListener('resize', () => {
+        camera.aspect = container.clientWidth / container.clientHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(container.clientWidth, container.clientHeight);
+    });
 }
 
 // Charts
@@ -183,8 +255,8 @@ function createMonthChart() {
             maintainAspectRatio: false,
             plugins: { legend: { display: false } },
             scales: {
-                y: { beginAtZero: true, grid: { color: 'rgba(128, 128, 128, 0.1)' } },
-                x: { grid: { display: false } }
+                y: { beginAtZero: true, grid: { color: 'rgba(128, 128, 128, 0.1)' }, ticks: { color: '#B8C4D9' } },
+                x: { grid: { display: false }, ticks: { color: '#B8C4D9' } }
             }
         }
     });
@@ -195,31 +267,67 @@ function createYearChart() {
     if (!ctx) return;
     if (yearChartInstance) yearChartInstance.destroy();
     
+    const data = [12, 14, 12, 6, 7, 17, 4, 24, 5, 9, 2];
+    
+    // Gradient
+    const gradient = ctx.getContext('2d').createLinearGradient(0, 0, 0, 400);
+    gradient.addColorStop(0, 'rgba(255, 107, 107, 0.4)');
+    gradient.addColorStop(1, 'rgba(168, 85, 247, 0.1)');
+    
     yearChartInstance = new Chart(ctx, {
-        type: 'bar',
+        type: 'line',
         data: {
-            labels: ['2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024', '2025', '2026*'],
+            labels: ['2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024', '2025', '2026'],
             datasets: [{
                 label: 'Kejadian',
-                data: [12, 14, 12, 6, 7, 17, 4, 24, 5, 9, 2],
-                backgroundColor: '#A855F7',
-                borderRadius: 8
+                data: data,
+                borderColor: '#FF6B6B',
+                backgroundColor: gradient,
+                fill: true,
+                tension: 0.4,
+                borderWidth: 3,
+                pointRadius: 6,
+                pointBackgroundColor: '#FF6B6B',
+                pointBorderColor: '#fff',
+                pointBorderWidth: 2,
+                pointHoverRadius: 8
             }]
         },
         options: {
             responsive: true,
             maintainAspectRatio: false,
-            plugins: { legend: { display: false } },
+            plugins: { 
+                legend: { display: false },
+                tooltip: {
+                    backgroundColor: 'rgba(10, 14, 26, 0.9)',
+                    titleColor: '#F5F5F5',
+                    bodyColor: '#B8C4D9',
+                    borderColor: '#FF6B6B',
+                    borderWidth: 1,
+                    padding: 12,
+                    displayColors: false,
+                    callbacks: {
+                        label: (context) => `${context.parsed.y} kejadian`
+                    }
+                }
+            },
             scales: {
-                y: { beginAtZero: true, grid: { color: 'rgba(128, 128, 128, 0.1)' } },
-                x: { grid: { display: false } }
+                y: { 
+                    beginAtZero: true, 
+                    grid: { color: 'rgba(128, 128, 128, 0.1)' },
+                    ticks: { color: '#B8C4D9' }
+                },
+                x: { 
+                    grid: { display: false },
+                    ticks: { color: '#B8C4D9' }
+                }
             }
         }
     });
 }
 
 window.addEventListener('load', () => {
-    initMap();
+    init3DMap();
     createMonthChart();
     createYearChart();
 });
