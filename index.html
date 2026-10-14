@@ -4,12 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Jejak di Lereng: Membaca Pola Longsor di DIY</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://unpkg.com/three@0.150.0/build/three.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -35,7 +34,6 @@
             overflow-x: hidden;
         }
 
-        /* Theme Toggle */
         .theme-toggle {
             position: fixed;
             top: 30px;
@@ -60,7 +58,6 @@
             transform: scale(1.1) rotate(15deg);
         }
 
-        /* Page Transition */
         .page-transition {
             position: fixed;
             top: 0;
@@ -77,7 +74,6 @@
             transform: translateY(0);
         }
 
-        /* Background Effects */
         .blob {
             position: fixed;
             border-radius: 50%;
@@ -176,7 +172,6 @@
             margin: 40px 0;
         }
 
-        /* 3D Tilt Cards */
         .card {
             background: rgba(255, 255, 255, 0.03);
             backdrop-filter: blur(20px);
@@ -223,11 +218,40 @@
             font-weight: 500;
         }
 
-        #map {
-            height: 500px;
+        /* 3D Map Container */
+        #map3d {
+            height: 600px;
             border-radius: 16px;
             overflow: hidden;
             margin-top: 30px;
+            position: relative;
+            background: linear-gradient(135deg, #0A0E1A 0%, #16213E 100%);
+        }
+
+        .map-legend {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(10, 14, 26, 0.9);
+            backdrop-filter: blur(10px);
+            padding: 20px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            z-index: 1000;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 8px;
+            font-size: 0.9rem;
+        }
+
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 4px;
         }
 
         .chart-container {
@@ -345,7 +369,7 @@
             margin-bottom: 15px;
         }
 
-        .footer-section p, .footer-section li {
+        .footer-section p {
             color: var(--text-secondary);
             line-height: 1.8;
             font-size: 0.95rem;
@@ -357,24 +381,7 @@
             .hero { min-height: 80vh; }
             .theme-toggle { top: 20px; right: 20px; width: 50px; height: 50px; }
             .card { padding: 25px; }
-            #map { height: 350px; }
-        }
-
-        .leaflet-popup-content-wrapper {
-            background: rgba(10, 14, 26, 0.95);
-            backdrop-filter: blur(20px);
-            border-radius: 12px;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.5);
-        }
-
-        .leaflet-popup-content {
-            color: var(--text-primary);
-            font-family: 'Plus Jakarta Sans', sans-serif;
-            margin: 15px;
-        }
-
-        .leaflet-popup-tip {
-            background: rgba(10, 14, 26, 0.95);
+            #map3d { height: 400px; }
         }
     </style>
 </head>
@@ -433,10 +440,25 @@
         <div class="container">
             <h2>Persebaran Lokasi</h2>
             <div class="card card-3d">
-                <h3>Lima Kabupaten/Kota Terdampak</h3>
-                <div id="map"></div>
+                <h3>Peta 3D Interaktif</h3>
+                <div id="map3d">
+                    <div class="map-legend">
+                        <div class="legend-item">
+                            <div class="legend-color" style="background: #FF6B6B;"></div>
+                            <span>Tinggi (>30)</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color" style="background: #A855F7;"></div>
+                            <span>Sedang (20-30)</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color" style="background: #3B82F6;"></div>
+                            <span>Rendah (<20)</span>
+                        </div>
+                    </div>
+                </div>
                 <div class="insight-box">
-                    💡 Kulon Progo mencatat 41 kejadian (36.6%), tertinggi di DIY.
+                    💡 Kulon Progo mencatat 41 kejadian (36.6%), tertinggi di DIY. Putar peta dengan drag untuk eksplorasi 3D.
                 </div>
             </div>
         </div>
@@ -454,9 +476,12 @@
             </div>
 
             <div class="card card-3d">
-                <h3>Distribusi Tahunan</h3>
+                <h3>Tren Tahunan (2016-2026)</h3>
                 <div class="chart-container">
                     <canvas id="yearChart"></canvas>
+                </div>
+                <div class="insight-box">
+                    💡 Tahun 2021 mencatat lonjakan tertinggi dengan 24 kejadian. Tren menurun sejak 2022.
                 </div>
             </div>
         </div>
